@@ -11,22 +11,10 @@
 class RoverController {
 public:
     // コンストラクタ
-    RoverController(int teensyLedPin, int greenLedPin, int redLedPin, int leftServoPin, int rightServoPin,
-    uint8_t bmeI2cAddress, uint8_t bnoI2cAddress);
+    RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress);
 
     // 初期化関数
     void init();
-
-    // LED
-    void turnTeensyLedOn();
-    void turnTeensyLedOff();
-    void blinkTeensyLed();
-    void turnGreenLedOn();
-    void turnGreenLedOff();
-    void blinkGreenLed();
-    void turnRedLedOn();
-    void turnRedLedOff();
-    void blinkRedLed(); 
 
     // サーボ
     void moveForward();
@@ -45,11 +33,6 @@ public:
     String getBno9AxisData();
 
 private:
-    // LED
-    int _teensyLedPin;
-    int _greenLedPin;
-    int _redLedPin;
-
     // サーボ
     int _leftServoPin;
     int _rightServoPin;

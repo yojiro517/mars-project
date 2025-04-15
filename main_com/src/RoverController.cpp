@@ -1,17 +1,10 @@
 #include "RoverController.h"
 
 // コンストラクタにより変数を定義
-RoverController::RoverController(int teensyLedPin, int greenLedPin, int redLedPin, int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress)
-    : _teensyLedPin(teensyLedPin), _greenLedPin(greenLedPin), _redLedPin(redLedPin), _leftServoPin(leftServoPin), _rightServoPin(rightServoPin),
-    _bmeI2cAddress(bmeI2cAddress), _bnoI2cAddress(bnoI2cAddress) {}
+RoverController::RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress)
+    : _leftServoPin(leftServoPin), _rightServoPin(rightServoPin), _bmeI2cAddress(bmeI2cAddress), _bnoI2cAddress(bnoI2cAddress) {}
 
 void RoverController::init() {
-    // LEDセットアップ
-    pinMode(_teensyLedPin, OUTPUT);
-    pinMode(_greenLedPin, OUTPUT);
-    pinMode(_redLedPin, OUTPUT);
-    turnTeensyLedOff();
-
     // サーボセットアップ
     _leftServo.attach(_leftServoPin);
     _rightServo.attach(_rightServoPin);
@@ -22,49 +15,6 @@ void RoverController::init() {
 
     // BME055セットアップ
     setupBno055();
-}
-
-// LED関連の関数
-void RoverController::turnTeensyLedOn() {
-    digitalWrite(_teensyLedPin, HIGH);
-}
-
-void RoverController::turnTeensyLedOff() {
-    digitalWrite(_teensyLedPin, LOW);
-}
-
-void RoverController::blinkTeensyLed() {
-    turnTeensyLedOn();
-    delay(10);
-    turnTeensyLedOff();
-}
-
-void RoverController::turnGreenLedOn() {
-    digitalWrite(_greenLedPin, HIGH);
-}
-
-void RoverController::turnGreenLedOff() {
-    digitalWrite(_greenLedPin, LOW);
-}
-
-void RoverController::blinkGreenLed() {
-    turnGreenLedOn();
-    delay(10);
-    turnGreenLedOff();
-}
-
-void RoverController::turnRedLedOn() {
-    digitalWrite(_redLedPin, HIGH);
-}
-
-void RoverController::turnRedLedOff() {
-    digitalWrite(_redLedPin, LOW);
-}
-
-void RoverController::blinkRedLed() {
-    turnRedLedOn();
-    delay(10);
-    turnRedLedOff();
 }
 
 // サーボ関連の関数
