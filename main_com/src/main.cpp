@@ -1,4 +1,5 @@
 #include "RoverController.h"
+#include <CanSatSchool.h>
 
 // ピン番号の定義
 const int TEENSY_LED_PIN = LED_BUILTIN;   // Teensyの内蔵LEDピン（今回は使っていない）
@@ -9,6 +10,10 @@ const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
 const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
 const uint8_t BNO_I2C_ADDRESS = 0x28; // BNO055アドレス
 
+BaroThermoHygrometer bth;
+Led green_led{GREEN_LED_PIN};
+Led red_led{RED_LED_PIN};
+
 // RoverController オブジェクト作成
 RoverController rover(TEENSY_LED_PIN, GREEN_LED_PIN, RED_LED_PIN, LEFT_SERVO_PIN, RIGHT_SERVO_PIN, BME_I2C_ADDRESS, BNO_I2C_ADDRESS);
 
@@ -16,6 +21,7 @@ void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
   delay(1000);
+  bth.init();
 
   //UART通信用開始
   Serial5.begin(115200);
