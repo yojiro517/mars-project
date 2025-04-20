@@ -16,7 +16,7 @@ Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
 // RoverController オブジェクト作成
-RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN, BME_I2C_ADDRESS, BNO_I2C_ADDRESS);
+RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN, BNO_I2C_ADDRESS);
 
 void setup() {
   // デバッグ用シリアル通信
@@ -27,6 +27,9 @@ void setup() {
   // LEDの初期化
   green_led.init();
   red_led.init();
+
+  // BME280の初期化
+  bth.init();
 
   //UART通信用開始
   Serial5.begin(115200);
@@ -66,11 +69,16 @@ void loop() {
       red_led.blink(1000); // 1秒間隔で点滅
     } else if (command == "T") {
       Serial.println("Getting data from BME280");
-      String bmeSensorData = rover.getBmeData();
+      BaroThermoHygrometer_t bth_data = bth.read();
+      String bmeSensorData = "{";
+      bmeSensorData += "\"temperature\":" + String(bth_data.temperature, 2) + ",";
+      bmeSensorData += "\"pressure\":" + String(bth_data.pressure, 2) + ",";
+      bmeSensorData += "\"humidity\":" + String(bth_data.humidity, 2);
+      bmeSensorData += "}";
       Serial5.println(bmeSensorData);
       Serial.println(bmeSensorData);
     } else if (command == "E") {
-      Serial.println("Getting data from BME280");
+      Serial.println("Getting data from BNO055");
       String bnoSensorData = rover.getBnoEulerData();
       Serial5.println(bnoSensorData);
       Serial.println(bnoSensorData);

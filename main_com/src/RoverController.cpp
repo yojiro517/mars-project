@@ -1,17 +1,14 @@
 #include "RoverController.h"
 
 // コンストラクタにより変数を定義
-RoverController::RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress)
-    : _leftServoPin(leftServoPin), _rightServoPin(rightServoPin), _bmeI2cAddress(bmeI2cAddress), _bnoI2cAddress(bnoI2cAddress) {}
+RoverController::RoverController(int leftServoPin, int rightServoPin, uint8_t bnoI2cAddress)
+    : _leftServoPin(leftServoPin), _rightServoPin(rightServoPin), _bnoI2cAddress(bnoI2cAddress) {}
 
 void RoverController::init() {
     // サーボセットアップ
     _leftServo.attach(_leftServoPin);
     _rightServo.attach(_rightServoPin);
     stopMotors();
-
-    // BME280セットアップ
-    setupBme280();
 
     // BME055セットアップ
     setupBno055();
@@ -41,29 +38,6 @@ void RoverController::turnLeft() {
 void RoverController::stopMotors() {
     _leftServo.write(_stopPosition);
     _rightServo.write(_stopPosition);
-}
-
-// 温度・気圧センサ関連の関数
-void RoverController::setupBme280() {
-    if (!_bme.begin(_bmeI2cAddress)) {
-        Serial.println("Could not find BME280 sensor. Check wiring or I2C address.");
-        while (1); // エラーの場合は無限ループ
-    }
-    Serial.println("BME280 initialized successfully.");
-}
-
-String RoverController::getBmeData() {
-    float temperature = _bme.readTemperature();
-    float pressure = _bme.readPressure();
-    float altitude = _bme.readAltitude(_seaLevelPressure);
-    float humidity = _bme.readHumidity();
-    String bmeSensorData = "{";
-    bmeSensorData += "\"temperature\":" + String(temperature, 2) + ",";
-    bmeSensorData += "\"pressure\":" + String(pressure, 2) + ",";
-    bmeSensorData += "\"altitude\":" + String(altitude, 2) + ",";
-    bmeSensorData += "\"humidity\":" + String(humidity, 2);
-    bmeSensorData += "}";
-    return bmeSensorData;
 }
 
 // 9軸センサ関連の関数

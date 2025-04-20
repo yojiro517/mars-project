@@ -1,7 +1,6 @@
 #include <Arduino.h>
 #include <Servo.h>
 #include <Adafruit_Sensor.h>
-#include <Adafruit_BME280.h>
 #include <Adafruit_BNO055.h>
 #include <Wire.h>
 
@@ -11,7 +10,7 @@
 class RoverController {
 public:
     // コンストラクタ
-    RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress);
+    RoverController(int leftServoPin, int rightServoPin, uint8_t bnoI2cAddress);
 
     // 初期化関数
     void init();
@@ -22,10 +21,6 @@ public:
     void turnRight();
     void turnLeft();
     void stopMotors();
-
-    // 温度・気圧センサ BME280
-    void setupBme280();
-    String getBmeData();
 
     //　9軸センサ BNO055
     void setupBno055();
@@ -46,9 +41,6 @@ private:
     const int _rightForwardSpeedSlow = 85;
     const int _rightBackwardSpeed = 100;
 
-    // 温度・気圧センサ BME280
-    Adafruit_BME280 _bme;
-    uint8_t _bmeI2cAddress;
     const float _seaLevelPressure = 1013.25;
 
     // 9軸センサ BNO055
