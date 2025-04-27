@@ -1,10 +1,14 @@
 #include "RoverController.h"
+#include <CanSatSchool.h>
 
 // コンストラクタにより変数を定義
-RoverController::RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress)
-    : _leftServoPin(leftServoPin), _rightServoPin(rightServoPin), _bmeI2cAddress(bmeI2cAddress), _bnoI2cAddress(bnoI2cAddress) {}
+RoverController::RoverController(int leftServoPin, int rightServoPin)
+    : _leftServoPin(leftServoPin), _rightServoPin(rightServoPin) {}
 
 void RoverController::init() {
+    // ledセットアップ
+    setupLED();
+
     // サーボセットアップ
     _leftServo.attach(_leftServoPin);
     _rightServo.attach(_rightServoPin);
@@ -12,9 +16,6 @@ void RoverController::init() {
 
     // BME280セットアップ
     setupBme280();
-
-    // BME055セットアップ
-    setupBno055();
 }
 
 // サーボ関連の関数
@@ -43,89 +44,57 @@ void RoverController::stopMotors() {
     _rightServo.write(_stopPosition);
 }
 
-// 温度・気圧センサ関連の関数
+void RoverController::setupLED() {
+    green_led.init();
+    red_led.init();
+    Serial.println("LED initialized successfully");
+}
+
 void RoverController::setupBme280() {
-    if (!_bme.begin(_bmeI2cAddress)) {
-        Serial.println("Could not find BME280 sensor. Check wiring or I2C address.");
-        while (1); // エラーの場合は無限ループ
-    }
+    bth.init();
     Serial.println("BME280 initialized successfully.");
 }
 
 String RoverController::getBmeData() {
-    float temperature = _bme.readTemperature();
-    float pressure = _bme.readPressure();
-    float altitude = _bme.readAltitude(_seaLevelPressure);
-    float humidity = _bme.readHumidity();
+    float temperature = bth.read().temperature;  // [°C]
+    float pressure = bth.read().pressure;  // [hPa]
+    float humidity = bth.read().humidity;  // [%]
     String bmeSensorData = "{";
     bmeSensorData += "\"temperature\":" + String(temperature, 2) + ",";
     bmeSensorData += "\"pressure\":" + String(pressure, 2) + ",";
-    bmeSensorData += "\"altitude\":" + String(altitude, 2) + ",";
     bmeSensorData += "\"humidity\":" + String(humidity, 2);
     bmeSensorData += "}";
     return bmeSensorData;
 }
 
-// 9軸センサ関連の関数
-void RoverController::setupBno055() {
-    if (!bno.begin()) {
-        Serial.println("Could not find BNO055 sensor. Check wiring or I2C address.");
-        while(1);
+void RoverController::motion(String command, RoverController rover) {
+    if (command == "W") {
+      Serial.println("Action: Move Forward");
+      rover.moveForward();
+    } else if (command == "S") {
+      Serial.println("Action: Move Backward");
+      rover.moveBackward();
+    } else if (command == "A") {
+      Serial.println("Action: Turn Left");
+      rover.turnLeft();
+    } else if (command == "D") {
+      Serial.println("Action: Turn Right");
+      rover.turnRight();
+    } else if (command == "G") {
+      Serial.println("Action: Blink Green LED");
+      green_led.blink(1000); // 1秒間隔で点滅
+    } else if (command == "R") {
+      Serial.println("Action: Blink Red LED");
+      red_led.blink(1000); // 1秒間隔で点滅
+    } else if (command == "T") {
+      Serial.println("Getting data from BME280");
+      String bmeSensorData = rover.getBmeData();
+      Serial5.println(bmeSensorData);
+      Serial.println(bmeSensorData);
+    } else if (command == "B") {
+      Serial.println("Action: Stopping");
+      rover.stopMotors();
+    } else {
+      Serial.println("Unknown Command");
     }
-    Serial.println("BNO055 initialized successfully.");
-}
-
-String RoverController::getBnoEulerData() {
-    //　オイラー角の取得
-    double yaw = bno.getVector(Adafruit_BNO055::VECTOR_EULER).z();
-    double pitch = bno.getVector(Adafruit_BNO055::VECTOR_EULER).y();
-    double roll = bno.getVector(Adafruit_BNO055::VECTOR_EULER).x();
-
-    // キャリブレーション状況の取得
-    uint8_t system, gyro, accel, mag = 0;
-    bno.getCalibration(&system, &gyro, &accel, &mag);
-
-    String bnoSensorData = "{";
-    bnoSensorData += "\"system\":" + String(system) + ",";
-    bnoSensorData += "\"gyro\":" + String(gyro) + ",";
-    bnoSensorData += "\"accel\":" + String(accel) + ",";
-    bnoSensorData += "\"mag\":" + String(mag) + ",";
-    bnoSensorData += "\"yaw\":" + String(yaw, 2) + ",";
-    bnoSensorData += "\"pitch\":" + String(pitch, 2) + ",";
-    bnoSensorData += "\"roll\":" + String(roll, 2) + ",";
-    bnoSensorData += "}";
-    return bnoSensorData;
-}
-
-String RoverController::getBno9AxisData() {
-    // 加速度データの取得（単位: m/s^2）
-    imu::Vector<3> accel = bno.getVector(Adafruit_BNO055::VECTOR_ACCELEROMETER);
-    double accelX = accel.x();
-    double accelY = accel.y();
-    double accelZ = accel.z();
-
-    // ジャイロデータの取得（単位: deg/s）
-    imu::Vector<3> gyro = bno.getVector(Adafruit_BNO055::VECTOR_GYROSCOPE);
-    double gyroX = gyro.x();
-    double gyroY = gyro.y();
-    double gyroZ = gyro.z();
-
-    // 磁気データの取得（単位: µT）
-    imu::Vector<3> mag = bno.getVector(Adafruit_BNO055::VECTOR_MAGNETOMETER);
-    double magX = mag.x();
-    double magY = mag.y();
-    double magZ = mag.z();
-
-    // キャリブレーション状況の取得
-    uint8_t system, gyroCalib, accelCalib, magCalib;
-    bno.getCalibration(&system, &gyroCalib, &accelCalib, &magCalib);
-
-    String bnoSensorData = "{";
-    bnoSensorData += "\"accel\":{\"x\":" + String(accelX, 2) + ",\"y\":" + String(accelY, 2) + ",\"z\":" + String(accelZ, 2) + "},";
-    bnoSensorData += "\"gyro\":{\"x\":" + String(gyroX, 2) + ",\"y\":" + String(gyroY, 2) + ",\"z\":" + String(gyroZ, 2) + "},";
-    bnoSensorData += "\"mag\":{\"x\":" + String(magX, 2) + ",\"y\":" + String(magY, 2) + ",\"z\":" + String(magZ, 2) + "},";
-    bnoSensorData += "\"calibration\":{\"system\":" + String(system) + ",\"gyro\":" + String(gyroCalib) + ",\"accel\":" + String(accelCalib) + ",\"mag\":" + String(magCalib) + "}";
-    bnoSensorData += "}";
-
-    return bnoSensorData;
 }

@@ -11,7 +11,7 @@
 class RoverController {
 public:
     // コンストラクタ
-    RoverController(int leftServoPin, int rightServoPin, uint8_t bmeI2cAddress, uint8_t bnoI2cAddress);
+    RoverController(int leftServoPin, int rightServoPin);
 
     // 初期化関数
     void init();
@@ -24,16 +24,22 @@ public:
     void stopMotors();
 
     // 温度・気圧センサ BME280
+    void setupLED();
     void setupBme280();
     String getBmeData();
 
-    //　9軸センサ BNO055
-    void setupBno055();
-    String getBnoEulerData();
-    String getBno9AxisData();
+    void motion(String, RoverController);
 
 private:
+    // LED
+    static constexpr int GREEN_LED_PIN = 22;   // 緑LED
+    static constexpr int RED_LED_PIN = 23;     // 赤LED
+    Led green_led{GREEN_LED_PIN};
+    Led red_led{RED_LED_PIN};
+
     // サーボ
+    static constexpr int LEFT_SERVO_PIN = 2;   // 左サーボ
+    static constexpr int RIGHT_SERVO_PIN = 3;  // 右サーボ
     int _leftServoPin;
     int _rightServoPin;
     Servo _leftServo;
@@ -47,13 +53,7 @@ private:
     const int _rightBackwardSpeed = 100;
 
     // 温度・気圧センサ BME280
-    Adafruit_BME280 _bme;
-    uint8_t _bmeI2cAddress;
-    const float _seaLevelPressure = 1013.25;
-
-    // 9軸センサ BNO055
-    uint8_t _bnoI2cAddress;
-    Adafruit_BNO055 bno = Adafruit_BNO055(-1, _bnoI2cAddress, &Wire);
+    BaroThermoHygrometer bth;
 };
 
 #endif 
