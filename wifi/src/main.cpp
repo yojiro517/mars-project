@@ -74,24 +74,6 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
       Udp.print(bmeSensorData);
       Udp.endPacket();
     }
-  } else if (strcmp(command, "E") == 0) {
-    while (Serial1.available() > 0) {
-        Serial1.read(); // バッファ内のデータをすべて破棄
-    }
-    Serial1.println("E");
-    unsigned long startTime = millis();
-    while (Serial1.available() == 0) {
-        if (millis() - startTime > 500) {
-            break;
-        }
-    }
-    if (Serial1.available() > 0) {
-      String bnoSensorData = Serial1.readStringUntil('\n');
-      bnoSensorData.trim();
-      Udp.beginPacket(remoteIP, remotePort);
-      Udp.print(bnoSensorData);
-      Udp.endPacket();
-    }
   } else if (strcmp(command, "B") == 0) {
     Serial1.println("B");
   } else {
