@@ -2,8 +2,8 @@
 #include <CanSatSchool.h>
 
 // ピン番号の定義
-#define GREEN_LED_PIN 22        // 緑LEDのピン番号
-#define RED_LED_PIN   23        // 赤LEDのピン番号
+#define GREEN_LED_PIN (22)        // 緑LEDのピン番号
+#define RED_LED_PIN (23)        // 赤LEDのピン番号
 const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
 const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
 const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
@@ -63,10 +63,12 @@ void loop() {
       Serial.println("Action: Blink Green LED");
       green_led.on();
       delay(1000); // 1秒間隔で点滅
+      greeen_led.off();
     } else if (command == "R") {
       Serial.println("Action: Blink Red LED");
       red_led.on();
       delay(1000); // 1秒間隔で点滅
+      red_led.off();
     } else if (command == "T") {
       Serial.println("Getting data from BME280");
       BaroThermoHygrometer_t bth_data = bth.read();
