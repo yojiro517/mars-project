@@ -1,4 +1,5 @@
 #include "RoverController.h"
+#include "ServoManeuver.h"
 #include <CanSatSchool.h>
 
 // ピン番号の定義
@@ -6,6 +7,13 @@
 #define RED_LED_PIN   (23)        // 赤LEDのピン番号
 const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
 const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
+const int stop_speed = 0;
+const int left_forward_speed = 15;
+const int left_forward_speed_slow = 10;
+const int left_backward_speed = 10;
+const int right_forward_speed = -10;
+const int right_forward_speed_slow = -5;
+const int right_backward_speed = 10;
 const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
 
 BaroThermoHygrometer bth;
@@ -13,7 +21,9 @@ Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
 // RoverController オブジェクト作成
-RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
+RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN); //削除予定
+
+ServoManeuver servo(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
   // デバッグ用シリアル通信
@@ -33,7 +43,7 @@ void setup() {
   Serial.println("Teensy UART Receiver Started");
 
   // rover初期関数実行
-  rover.init();
+  rover.init(); //削除予定
 }
 
 void loop() {
@@ -48,16 +58,16 @@ void loop() {
 
     if (command == "W") {
       Serial.println("Action: Move Forward");
-      rover.moveForward();
+      servo.moveForward(left_forward_speed, right_forward_speed);
     } else if (command == "S") {
       Serial.println("Action: Move Backward");
-      rover.moveBackward();
+      servo.moveBackward(left_backward_speed, right_backward_speed);
     } else if (command == "A") {
       Serial.println("Action: Turn Left");
-      rover.turnLeft();
+      servo.turnLeft(left_forward_speed_slow, right_forward_speed);
     } else if (command == "D") {
       Serial.println("Action: Turn Right");
-      rover.turnRight();
+      servo.turnRight(left_forward_speed, right_forward_speed_slow);
     } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
       green_led.blink(1000);
@@ -76,7 +86,7 @@ void loop() {
       Serial.println(bmeSensorData);
     } else if (command == "B") {
       Serial.println("Action: Stopping");
-      rover.stopMotors();
+      servo.stop(stop_speed);
     } else {
       Serial.println("Unknown Command");
     }
