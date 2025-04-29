@@ -9,9 +9,6 @@ void RoverController::init() {
     _leftServo.attach(_leftServoPin);
     _rightServo.attach(_rightServoPin);
     stopMotors();
-
-    // BME055セットアップ
-    setupBno055();
 }
 
 // サーボ関連の関数
