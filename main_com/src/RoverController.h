@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <Servo.h>
-#include <Adafruit_Sensor.h>
 #include <Wire.h>
 
 #ifndef ROVER_CONTROLLER_H
