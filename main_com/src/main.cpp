@@ -1,5 +1,5 @@
-#include "ServoManeuver.h"
 #include <CanSatSchool.h>
+#include "servo_maneuver.h"
 
 // ピン番号の定義
 #define GREEN_LED_PIN (22)        // 緑LEDのピン番号
