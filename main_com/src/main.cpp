@@ -2,16 +2,14 @@
 #include <CanSatSchool.h>
 
 // ピン番号の定義
-#define TEENSY_LED_PIN (LED_BUILTIN)  // Teensyの内蔵LEDピン（今回は使っていない）
-#define GREEN_LED_PIN  (22)           // 緑LEDのピン番号
-#define RED_LED_PIN    (23)           // 赤LEDのピン番号
+#define GREEN_LED_PIN (22)        // 緑LEDのピン番号
+#define RED_LED_PIN   (23)        // 赤LEDのピン番号
 const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
 const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
 const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
 const uint8_t BNO_I2C_ADDRESS = 0x28; // BNO055アドレス
 
 BaroThermoHygrometer bth;
-// Led teensy_led{TEENSY_LED_PIN};
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
@@ -63,10 +61,10 @@ void loop() {
       rover.turnRight();
     } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
-      green_led.blink(1000); // 1秒間隔で点滅
+      green_led.blink(1000);
     } else if (command == "R") {
       Serial.println("Action: Blink Red LED");
-      red_led.blink(1000); // 1秒間隔で点滅
+      red_led.blink(1000);
     } else if (command == "T") {
       Serial.println("Getting data from BME280");
       BaroThermoHygrometer_t bth_data = bth.read();
