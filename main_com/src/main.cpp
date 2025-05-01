@@ -1,4 +1,3 @@
-#include "RoverController.h"
 #include "ServoManeuver.h"
 #include <CanSatSchool.h>
 
@@ -19,10 +18,7 @@ BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
-// RoverController オブジェクト作成
-RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN); //削除予定
-
-ServoManeuver servo(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
+ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
   // デバッグ用シリアル通信
@@ -42,7 +38,7 @@ void setup() {
   Serial.println("Teensy UART Receiver Started");
 
   // rover初期関数実行
-  rover.init(); //削除予定
+  servo_maneuver.init();
 }
 
 void loop() {
@@ -57,16 +53,16 @@ void loop() {
 
     if (command == "W") {
       Serial.println("Action: Move Forward");
-      servo.moveForward(left_forward_speed, right_forward_speed);
+      servo_maneuver.moveForward(left_forward_speed, right_forward_speed);
     } else if (command == "S") {
       Serial.println("Action: Move Backward");
-      servo.moveBackward(left_backward_speed, right_backward_speed);
+      servo_maneuver.moveBackward(left_backward_speed, right_backward_speed);
     } else if (command == "A") {
       Serial.println("Action: Turn Left");
-      servo.turnLeft(left_forward_speed_slow, right_forward_speed);
+      servo_maneuver.turnLeft(left_forward_speed_slow, right_forward_speed);
     } else if (command == "D") {
       Serial.println("Action: Turn Right");
-      servo.turnRight(left_forward_speed, right_forward_speed_slow);
+      servo_maneuver.turnRight(left_forward_speed, right_forward_speed_slow);
     } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
       green_led.blink(1000);
@@ -85,7 +81,7 @@ void loop() {
       Serial.println(bmeSensorData);
     } else if (command == "B") {
       Serial.println("Action: Stopping");
-      servo.stop(stop_speed);
+      servo_maneuver.stop(stop_speed);
     } else {
       Serial.println("Unknown Command");
     }

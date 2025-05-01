@@ -1,7 +1,14 @@
 #include "ServoManeuver.h"
 
+       
 ServoManeuver::ServoManeuver(int left_servo_pin, int right_servo_pin)
-    : left_servo_pin_(left_servo_pin), right_servo_pin_(right_servo_pin) {}
+    : left_servo_{ServoMotor(left_servo_pin)}, right_servo_{ServoMotor(right_servo_pin)} {
+};
+
+void ServoManeuver::init() {
+    left_servo_.init();
+    right_servo_.init();
+}
 
 void ServoManeuver::moveForward(int left_forward_speed, int right_forward_speed) {
     left_servo_.rotateSpeed(left_forward_speed);
