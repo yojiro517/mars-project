@@ -14,7 +14,6 @@ const int left_backward_speed = 10;
 const int right_forward_speed = -10;
 const int right_forward_speed_slow = -5;
 const int right_backward_speed = 10;
-const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
 
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
