@@ -32,7 +32,7 @@ def send_command(command):
 
 def main():
     print("Control the ESP32-S3")
-    print("W: Forward, S: Backward, A: Left, D: Right, G: Green LED, R: Red LED, T: BME Sensor, E: BNO Sensor, B: Stop, Q: Quit")
+    print("W: Forward, S: Backward, A: Left, D: Right, G: Green LED, R: Red LED, T: BME Sensor, B: Stop, Q: Quit")
 
     while True:
         try:
@@ -51,8 +51,6 @@ def main():
                 send_command("G")
             elif keyboard.is_pressed('t'):
                 send_command("T")
-            elif keyboard.is_pressed('e'):
-                send_command("E")
             elif keyboard.is_pressed('b'):
                 send_command("B")
             elif keyboard.is_pressed('q'):

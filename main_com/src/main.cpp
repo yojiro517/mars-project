@@ -7,14 +7,13 @@
 const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
 const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
 const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
-const uint8_t BNO_I2C_ADDRESS = 0x28; // BNO055アドレス
 
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
 // RoverController オブジェクト作成
-RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN, BNO_I2C_ADDRESS);
+RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
   // デバッグ用シリアル通信
@@ -75,11 +74,6 @@ void loop() {
       bmeSensorData += "}";
       Serial5.println(bmeSensorData);
       Serial.println(bmeSensorData);
-    } else if (command == "E") {
-      Serial.println("Getting data from BNO055");
-      String bnoSensorData = rover.getBnoEulerData();
-      Serial5.println(bnoSensorData);
-      Serial.println(bnoSensorData);
     } else if (command == "B") {
       Serial.println("Action: Stopping");
       rover.stopMotors();

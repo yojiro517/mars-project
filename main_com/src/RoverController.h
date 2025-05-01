@@ -1,7 +1,5 @@
 #include <Arduino.h>
 #include <Servo.h>
-#include <Adafruit_Sensor.h>
-#include <Adafruit_BNO055.h>
 #include <Wire.h>
 
 #ifndef ROVER_CONTROLLER_H
@@ -10,7 +8,7 @@
 class RoverController {
 public:
     // コンストラクタ
-    RoverController(int leftServoPin, int rightServoPin, uint8_t bnoI2cAddress);
+    RoverController(int leftServoPin, int rightServoPin);
 
     // 初期化関数
     void init();
@@ -21,11 +19,6 @@ public:
     void turnRight();
     void turnLeft();
     void stopMotors();
-
-    //　9軸センサ BNO055
-    void setupBno055();
-    String getBnoEulerData();
-    String getBno9AxisData();
 
 private:
     // サーボ
@@ -42,10 +35,6 @@ private:
     const int _rightBackwardSpeed = 100;
 
     const float _seaLevelPressure = 1013.25;
-
-    // 9軸センサ BNO055
-    uint8_t _bnoI2cAddress;
-    Adafruit_BNO055 bno = Adafruit_BNO055(-1, _bnoI2cAddress, &Wire);
 };
 
 #endif 
