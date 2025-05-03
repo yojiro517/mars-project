@@ -24,4 +24,4 @@ private:
     int right_backward_speed_     = 10;
 };
 
-#endif 
+#endif // SERVOMANEUVER_H
