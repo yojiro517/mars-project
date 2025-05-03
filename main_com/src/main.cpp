@@ -2,17 +2,10 @@
 #include "servo_maneuver.h"
 
 // ピン番号の定義
-#define GREEN_LED_PIN (22)        // 緑LEDのピン番号
-#define RED_LED_PIN   (23)        // 赤LEDのピン番号
-const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
-const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
-const int stop_speed = 0;
-const int left_forward_speed = 15;
-const int left_forward_speed_slow = 10;
-const int left_backward_speed = 10;
-const int right_forward_speed = -10;
-const int right_forward_speed_slow = -5;
-const int right_backward_speed = 10;
+#define GREEN_LED_PIN (22)    // 緑LEDのピン番号
+#define RED_LED_PIN   (23)    // 赤LEDのピン番号
+#define LEFT_SERVO_PIN  (2)   // 左サーボモーターのピン番号
+#define RIGHT_SERVO_PIN (3)   // 右サーボモーターのピン番号
 
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
@@ -53,16 +46,16 @@ void loop() {
 
     if (command == "W") {
       Serial.println("Action: Move Forward");
-      servo_maneuver.moveForward(left_forward_speed, right_forward_speed);
+      servo_maneuver.moveForward();
     } else if (command == "S") {
       Serial.println("Action: Move Backward");
-      servo_maneuver.moveBackward(left_backward_speed, right_backward_speed);
+      servo_maneuver.moveBackward();
     } else if (command == "A") {
       Serial.println("Action: Turn Left");
-      servo_maneuver.turnLeft(left_forward_speed_slow, right_forward_speed);
+      servo_maneuver.turnLeft();
     } else if (command == "D") {
       Serial.println("Action: Turn Right");
-      servo_maneuver.turnRight(left_forward_speed, right_forward_speed_slow);
+      servo_maneuver.turnRight();
     } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
       green_led.blink(1000);

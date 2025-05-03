@@ -10,27 +10,27 @@ void ServoManeuver::init() {
     right_servo_.init();
 }
 
-void ServoManeuver::moveForward(int left_forward_speed, int right_forward_speed) {
-    left_servo_.rotateSpeed(left_forward_speed);
-    right_servo_.rotateSpeed(right_forward_speed);
+void ServoManeuver::moveForward() {
+    left_servo_.rotateSpeed(left_forward_speed_);
+    right_servo_.rotateSpeed(right_forward_speed_);
 }
 
-void ServoManeuver::moveBackward(int leftBackwardSpeed, int rightBackwardSpeed) {
-    left_servo_.rotateSpeed(leftBackwardSpeed);
-    right_servo_.rotateSpeed(rightBackwardSpeed);
+void ServoManeuver::moveBackward() {
+    left_servo_.rotateSpeed(left_backward_speed_);
+    right_servo_.rotateSpeed(right_backward_speed_);
 }
 
-void ServoManeuver::turnRight(int left_forward_speed, int right_forward_speedSlow) {
-    left_servo_.rotateSpeed(left_forward_speed);
-    right_servo_.rotateSpeed(right_forward_speedSlow);
+void ServoManeuver::turnRight() {
+    left_servo_.rotateSpeed(left_forward_speed_);
+    right_servo_.rotateSpeed(right_forward_speed_slow_);
 }
 
-void ServoManeuver::turnLeft(int left_forward_speed_slow, int right_forward_speed) {
-    left_servo_.rotateSpeed(left_forward_speed_slow);
-    right_servo_.rotateSpeed(right_forward_speed);
+void ServoManeuver::turnLeft() {
+    left_servo_.rotateSpeed(left_forward_speed_slow_);
+    right_servo_.rotateSpeed(right_forward_speed_);
 }
 
-void ServoManeuver::stop(int stop_speed) {
-    left_servo_.rotateSpeed(stop_speed);
-    right_servo_.rotateSpeed(stop_speed);
+void ServoManeuver::stop() {
+    left_servo_.rotateSpeed(stop_speed_);
+    right_servo_.rotateSpeed(stop_speed_);
 }
