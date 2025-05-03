@@ -1,19 +1,17 @@
-#include "RoverController.h"
 #include <CanSatSchool.h>
+#include "servo_maneuver.h"
 
 // ピン番号の定義
-#define GREEN_LED_PIN (22)        // 緑LEDのピン番号
-#define RED_LED_PIN   (23)        // 赤LEDのピン番号
-const int LEFT_SERVO_PIN = 2;   // 左サーボモーターのピン番号
-const int RIGHT_SERVO_PIN = 3;  // 右サーボモーターのピン番号
-const uint8_t BME_I2C_ADDRESS = 0x76; // BME280アドレス
+#define GREEN_LED_PIN (22)    // 緑LEDのピン番号
+#define RED_LED_PIN   (23)    // 赤LEDのピン番号
+#define LEFT_SERVO_PIN  (2)   // 左サーボモーターのピン番号
+#define RIGHT_SERVO_PIN (3)   // 右サーボモーターのピン番号
 
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 
-// RoverController オブジェクト作成
-RoverController rover(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
+ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
   // デバッグ用シリアル通信
@@ -33,7 +31,7 @@ void setup() {
   Serial.println("Teensy UART Receiver Started");
 
   // rover初期関数実行
-  rover.init();
+  servo_maneuver.init();
 }
 
 void loop() {
@@ -48,16 +46,16 @@ void loop() {
 
     if (command == "W") {
       Serial.println("Action: Move Forward");
-      rover.moveForward();
+      servo_maneuver.moveForward();
     } else if (command == "S") {
       Serial.println("Action: Move Backward");
-      rover.moveBackward();
+      servo_maneuver.moveBackward();
     } else if (command == "A") {
       Serial.println("Action: Turn Left");
-      rover.turnLeft();
+      servo_maneuver.turnLeft();
     } else if (command == "D") {
       Serial.println("Action: Turn Right");
-      rover.turnRight();
+      servo_maneuver.turnRight();
     } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
       green_led.blink(1000);
@@ -76,7 +74,7 @@ void loop() {
       Serial.println(bmeSensorData);
     } else if (command == "B") {
       Serial.println("Action: Stopping");
-      rover.stopMotors();
+      servo_maneuver.stop();
     } else {
       Serial.println("Unknown Command");
     }
