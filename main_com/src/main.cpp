@@ -74,7 +74,7 @@ void loop() {
       Serial.println(bmeSensorData);
     } else if (command == "B") {
       Serial.println("Action: Stopping");
-      servo_maneuver.stop(stop_speed);
+      servo_maneuver.stop();
     } else {
       Serial.println("Unknown Command");
     }
