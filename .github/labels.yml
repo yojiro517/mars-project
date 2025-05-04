@@ -9,7 +9,7 @@
 - name: ":sparkles: enhancement"
   description: "New feature or request"
   color: "F0F0F0"
-  
+
 - name: ":beginner: good first issue"
   description: "Good for newcomers"
   color: "F0F0F0"
@@ -48,16 +48,4 @@
 
 - name: ":wrench: tools"
   description: "Tools"
-  color: "F0F0F0"
-
-- name: ":artificial_satellite: C2A"
-  description: "Command Centric Architecture"
-  color: "F0F0F0"
-
-- name: ":ringed_planet: S2E"
-  description: "Spacecraft Simulation Environment"
-  color: "F0F0F0"
-
-- name: ":satellite: WINGS"
-  description: "Web-based INterface Ground-station Software"
   color: "F0F0F0"
