@@ -17,15 +17,14 @@ void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
   delay(1000);
-  Wire.begin();
-  bth.init(&Wire); 
 
   // LEDの初期化
   green_led.init();
   red_led.init();
 
   // BME280の初期化
-  bth.init();
+  Wire.begin();
+  bth.init(&Wire); 
 
   //UART通信用開始
   Serial5.begin(115200);
