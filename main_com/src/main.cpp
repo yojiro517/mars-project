@@ -24,7 +24,7 @@ void setup() {
 
   // BME280の初期化
   Wire.begin();
-  bth.init(&Wire); 
+  bth.init(); 
 
   //UART通信用開始
   Serial5.begin(115200);
