@@ -1,7 +1,5 @@
 #include <CanSatSchool.h>
 #include "servo_maneuver.h"
-#include "loop_func.h"
-#include "hardware.h"
 
 // ピン番号の定義
 #define GREEN_LED_PIN (22)    // 緑LEDのピン番号
@@ -9,32 +7,30 @@
 #define LEFT_SERVO_PIN  (2)   // 左サーボモーターのピン番号
 #define RIGHT_SERVO_PIN (3)   // 右サーボモーターのピン番号
 
-hardware_bundle hb = {
-  BaroThermoHygrometer(),
-  Led(GREEN_LED_PIN),
-  Led(RED_LED_PIN),
-  ServoManeuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN)
-};
+BaroThermoHygrometer bth;
+Led green_led{GREEN_LED_PIN};
+Led red_led{RED_LED_PIN};
+ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
   delay(1000);
-  hb.bth.init();
+  bth.init();
 
   // LEDの初期化
-  hb.green_led.init();
-  hb.red_led.init();
+  green_led.init();
+  red_led.init();
 
   // BME280の初期化
-  hb.bth.init();
+  bth.init();
 
   //UART通信用開始
   Serial5.begin(115200);
   Serial.println("Teensy UART Receiver Started");
 
   // rover初期関数実行
-  hb.servo_maneuver.init();
+  servo_maneuver.init();
 }
 
 void loop() {
@@ -47,8 +43,46 @@ void loop() {
     Serial.print("Received Command: ");
     Serial.println(command);
 
-    command_execute(command, hb);
+    // コマンドに基づいて処理を実行
+    command_execute(command);
   }
 
   delay(100);
+}
+
+void command_execute(String command) {
+  if (command == "W") {
+      Serial.println("Action: Move Forward");
+      servo_maneuver.moveForward();
+  } else if (command == "S") {
+      Serial.println("Action: Move Backward");
+      servo_maneuver.moveBackward();
+  } else if (command == "A") {
+      Serial.println("Action: Turn Left");
+      servo_maneuver.turnLeft();
+  } else if (command == "D") {
+      Serial.println("Action: Turn Right");
+      servo_maneuver.turnRight();
+  } else if (command == "G") {
+      Serial.println("Action: Blink Green LED");
+      green_led.blink(1000);
+  } else if (command == "R") {
+      Serial.println("Action: Blink Red LED");
+      red_led.blink(1000);
+  } else if (command == "T") {
+      Serial.println("Getting data from BME280");
+      BaroThermoHygrometer_t bth_data = bth.read();
+      String bmeSensorData = "{";
+      bmeSensorData += "\"temperature\":" + String(bth_data.temperature, 2) + ",";
+      bmeSensorData += "\"pressure\":" + String(bth_data.pressure, 2) + ",";
+      bmeSensorData += "\"humidity\":" + String(bth_data.humidity, 2);
+      bmeSensorData += "}";
+      Serial5.println(bmeSensorData);
+      Serial.println(bmeSensorData);
+  } else if (command == "B") {
+      Serial.println("Action: Stopping");
+      servo_maneuver.stop();
+  } else {
+      Serial.println("Unknown Command");
+  }
 }
