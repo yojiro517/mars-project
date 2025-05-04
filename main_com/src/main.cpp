@@ -17,7 +17,8 @@ void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
   delay(1000);
-  bth.init();
+  Wire.begin();
+  bth.init(&Wire); 
 
   // LEDの初期化
   green_led.init();
