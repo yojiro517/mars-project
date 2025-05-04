@@ -12,6 +12,8 @@ Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
+void command_execute(String command);
+
 void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
