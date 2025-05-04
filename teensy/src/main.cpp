@@ -18,18 +18,18 @@ void setup() {
   // デバッグ用シリアル通信
   Serial.begin(115200);
   delay(1000);
+  Serial.println("Teensy UART Receiver Started");
+  Wire.begin();
+
+  //UART通信用開始
+  Serial5.begin(115200);
 
   // LEDの初期化
   green_led.init();
   red_led.init();
 
   // BME280の初期化
-  Wire.begin();
   bth.init(); 
-
-  //UART通信用開始
-  Serial5.begin(115200);
-  Serial.println("Teensy UART Receiver Started");
 
   // rover初期関数実行
   servo_maneuver.init();
