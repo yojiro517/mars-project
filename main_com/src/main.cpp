@@ -10,7 +10,6 @@
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
-
 ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void setup() {
@@ -44,25 +43,33 @@ void loop() {
     Serial.print("Received Command: ");
     Serial.println(command);
 
-    if (command == "W") {
+    // コマンドに基づいて処理を実行
+    command_execute(command);
+  }
+
+  delay(100);
+}
+
+void command_execute(String command) {
+  if (command == "W") {
       Serial.println("Action: Move Forward");
       servo_maneuver.moveForward();
-    } else if (command == "S") {
+  } else if (command == "S") {
       Serial.println("Action: Move Backward");
       servo_maneuver.moveBackward();
-    } else if (command == "A") {
+  } else if (command == "A") {
       Serial.println("Action: Turn Left");
       servo_maneuver.turnLeft();
-    } else if (command == "D") {
+  } else if (command == "D") {
       Serial.println("Action: Turn Right");
       servo_maneuver.turnRight();
-    } else if (command == "G") {
+  } else if (command == "G") {
       Serial.println("Action: Blink Green LED");
       green_led.blink(1000);
-    } else if (command == "R") {
+  } else if (command == "R") {
       Serial.println("Action: Blink Red LED");
       red_led.blink(1000);
-    } else if (command == "T") {
+  } else if (command == "T") {
       Serial.println("Getting data from BME280");
       BaroThermoHygrometer_t bth_data = bth.read();
       String bmeSensorData = "{";
@@ -72,13 +79,10 @@ void loop() {
       bmeSensorData += "}";
       Serial5.println(bmeSensorData);
       Serial.println(bmeSensorData);
-    } else if (command == "B") {
+  } else if (command == "B") {
       Serial.println("Action: Stopping");
       servo_maneuver.stop();
-    } else {
+  } else {
       Serial.println("Unknown Command");
-    }
   }
-
-  delay(100);
 }
