@@ -20,13 +20,14 @@ def send_command(command):
     if command == "T":
         try:
             data, addr = sock.recvfrom(1024)  # 最大1024バイトのデータを受信
-            print("Received from ESP32-S3:\n" + data.decode())
-        except socket.timeout:
-            print("No response from ESP32-S3.")
-    elif command == "E":
-        try:
-            data, addr = sock.recvfrom(1024)
-            print("Received from ESP32-S3:\n" + data.decode())
+            decoded = data.decode()
+            parts = decoded.split(",")
+
+            if len(parts) >= 3:
+                print("Received from ESP32-S3:")
+                print(f"temperature: {parts[0]}")
+                print(f"pressure:    {parts[1]}")
+                print(f"humidity:    {parts[2]}")
         except socket.timeout:
             print("No response from ESP32-S3.")
 

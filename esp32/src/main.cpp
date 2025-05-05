@@ -43,6 +43,16 @@ void Wifi_setup()
 
 void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort)
 {
+  String rawBinary;
+  String latestInfo;
+  while (Serial1.available()) {
+    rawBinary = Serial1.readStringUntil('\n');
+    if (rawBinary.length() >= 3 &&
+        (uint8_t)rawBinary[0] == 0x5C &&
+        (uint8_t)rawBinary[1] == 0x94) {
+      latestInfo = rawBinary.substring(2);
+    }
+  }
   // UARTでTeensyに送信
   if (strcmp(command, "W") == 0) {
     Serial1.println("W");
@@ -57,25 +67,12 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
   } else if (strcmp(command, "G") == 0) {
     Serial1.println("G");
   } else if (strcmp(command, "T") == 0) {
-    while (Serial1.available() > 0) {
-        Serial1.read(); // バッファ内のデータをすべて破棄
-    }
     Serial1.println("T");
-    unsigned long startTime = millis();
-    while (Serial1.available() == 0) {
-        if (millis() - startTime > 500) {
-            break;
-        }
-    }
-    if (Serial1.available() > 0) {
-      String bmeSensorData = Serial1.readStringUntil('\n'); // 改行までのデータを取得
-      bmeSensorData.trim(); // 不要な空白や改行を削除
       Udp.beginPacket(remoteIP, remotePort);
-      Udp.print(bmeSensorData);
+      Udp.print(latestInfo);
       Udp.endPacket();
-    }
   } else if (strcmp(command, "B") == 0) {
-    Serial1.println("B");
+      Serial1.println("B");
   } else {
     Serial1.println("Unknown command received.");
   }
@@ -108,13 +105,11 @@ void loop()
       processCommand(packetBuffer, remoteIP, remotePort);
     }
   }
-
   // コマンド維持タイムアウト処理
   if (millis() - lastCommandTime > timeout) {
     lastCommand = "B";
     processCommand("B", IPAddress(), 0);
     lastCommandTime = millis();
   }
-
   delay(1);
 }

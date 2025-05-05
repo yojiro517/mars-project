@@ -73,18 +73,26 @@ void command_execute(String command) {
       red_led.blink(1000);
   } else if (command == "T") {
       Serial.println("Getting data from BME280");
-      BaroThermoHygrometer_t bth_data = bth.read();
-      String bmeSensorData = "{";
-      bmeSensorData += "\"temperature\":" + String(bth_data.temperature, 2) + ",";
-      bmeSensorData += "\"pressure\":" + String(bth_data.pressure, 2) + ",";
-      bmeSensorData += "\"humidity\":" + String(bth_data.humidity, 2);
-      bmeSensorData += "}";
-      Serial5.println(bmeSensorData);
-      Serial.println(bmeSensorData);
   } else if (command == "B") {
       Serial.println("Action: Stopping");
       servo_maneuver.stop();
   } else {
       Serial.println("Unknown Command");
   }
+  //常に行う処理
+  BaroThermoHygrometer_t bth_data = bth.read();
+  char bmeSensorData[100] = "";
+  char dataLine[64];
+  int len = 0;
+  bmeSensorData[len++] = 0x5C;
+  bmeSensorData[len++] = 0x94;
+  snprintf(dataLine, sizeof(dataLine), "%.2f,%.2f,%.2f,", 
+         bth_data.temperature,
+         bth_data.pressure,
+         bth_data.humidity);
+  int dataLen = strlen(dataLine);
+  memcpy(&bmeSensorData[len], dataLine, dataLen);
+  len += dataLen;
+  bmeSensorData[len++] = '\n';
+  Serial5.write((uint8_t*)bmeSensorData, len);
 }
