@@ -1,6 +1,7 @@
 import socket
 import keyboard
 import time
+import struct
 
 # ESP32-S3のIPとポート
 ESP32_UDP_IP = "192.168.1.1"
@@ -20,14 +21,16 @@ def send_command(command):
     if command == "T":
         try:
             data, addr = sock.recvfrom(1024)  # 最大1024バイトのデータを受信
-            decoded = data.decode()
-            parts = decoded.split(",")
 
-            if len(parts) >= 3:
+            if len(data) == 12:
+                temp, press, humi = struct.unpack('<fff', data)
                 print("Received from ESP32-S3:")
-                print(f"temperature: {parts[0]}")
-                print(f"pressure:    {parts[1]}")
-                print(f"humidity:    {parts[2]}")
+                print(f"temperature: {temp:.2f}")
+                print(f"pressure:    {press:.2f}")
+                print(f"humidity:    {humi:.2f}")
+            else:
+                print(f"Invalid data length: {len(data)} bytes")
+
         except socket.timeout:
             print("No response from ESP32-S3.")
 

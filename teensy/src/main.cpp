@@ -84,15 +84,17 @@ void command_execute(String command) {
   char bmeSensorData[100] = "";
   char dataLine[64];
   int len = 0;
-  bmeSensorData[len++] = 0x5C;
-  bmeSensorData[len++] = 0x94;
-  snprintf(dataLine, sizeof(dataLine), "%.2f,%.2f,%.2f,", 
-         bth_data.temperature,
-         bth_data.pressure,
-         bth_data.humidity);
-  int dataLen = strlen(dataLine);
-  memcpy(&bmeSensorData[len], dataLine, dataLen);
-  len += dataLen;
-  bmeSensorData[len++] = '\n';
-  Serial5.write((uint8_t*)bmeSensorData, len);
+  bmeSensorData[len] = 0x5C;
+  len++;
+  bmeSensorData[len] = 0x94;
+  len++;
+  memcpy(&bmeSensorData[len], &bth_data.temperature, sizeof(float));
+  len += sizeof(float);
+  memcpy(&bmeSensorData[len], &bth_data.pressure, sizeof(float));
+  len += sizeof(float);
+  memcpy(&bmeSensorData[len], &bth_data.humidity, sizeof(float));
+  len += sizeof(float);
+  bmeSensorData[len] = '\n';
+  len++;
+  Serial5.write(bmeSensorData, len);
 }

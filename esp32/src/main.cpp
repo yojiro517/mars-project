@@ -15,10 +15,11 @@ IPAddress subnet(255, 255, 255, 0);
 // UARTピン設定
 #define UART_TX 1 // ESP32-S3のTXピン
 #define UART_RX 2 // ESP32-S3のRXピン
-
 String lastCommand = "";
 unsigned long lastCommandTime = 0;
 const unsigned long timeout = 500;
+uint8_t latestFrame[32];
+int latestLen = 0;
 
 void Wifi_setup()
 {
@@ -43,14 +44,27 @@ void Wifi_setup()
 
 void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort)
 {
-  String rawBinary;
-  String latestInfo;
+  static uint8_t recvBuffer[32];
+  static int index = 0;
+
   while (Serial1.available()) {
-    rawBinary = Serial1.readStringUntil('\n');
-    if (rawBinary.length() >= 3 &&
-        (uint8_t)rawBinary[0] == 0x5C &&
-        (uint8_t)rawBinary[1] == 0x94) {
-      latestInfo = rawBinary.substring(2);
+    uint8_t b = Serial1.read();
+
+    if (index < sizeof(recvBuffer)) {
+      recvBuffer[index] = b;
+      index++;
+    }
+
+    if (b == '\n' && index >= 15) {
+      if (recvBuffer[0] == 0x5C && recvBuffer[1] == 0x94) {
+        memcpy(latestFrame, recvBuffer, index);
+        latestLen = index;
+      }
+      index = 0;
+    }
+
+    if (index >= sizeof(recvBuffer)) {
+      index = 0;
     }
   }
   // UARTでTeensyに送信
@@ -68,9 +82,15 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
     Serial1.println("G");
   } else if (strcmp(command, "T") == 0) {
     Serial1.println("T");
-      Udp.beginPacket(remoteIP, remotePort);
-      Udp.print(latestInfo);
-      Udp.endPacket();
+    if (latestLen == 15 &&
+      latestFrame[0] == 0x5C &&
+      latestFrame[1] == 0x94 &&
+      latestFrame[14] == '\n') {
+
+    Udp.beginPacket(remoteIP, remotePort);
+    Udp.write(&latestFrame[2], 12);
+    Udp.endPacket();
+    }
   } else if (strcmp(command, "B") == 0) {
       Serial1.println("B");
   } else {
