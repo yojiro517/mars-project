@@ -25,8 +25,8 @@ def send_command(command):
             if len(data) == 12:
                 temp, press, humi = struct.unpack('<fff', data)
                 print("Received from ESP32-S3:")
-                print(f"temperature: {temp:.2f}")
-                print(f"pressure:    {press:.2f}")
+                print(f"pressure: {temp:.2f}")
+                print(f"temperature:    {press:.2f}")
                 print(f"humidity:    {humi:.2f}")
             else:
                 print(f"Invalid data length: {len(data)} bytes")

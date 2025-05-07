@@ -13,6 +13,7 @@ Led red_led{RED_LED_PIN};
 ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void command_execute(String command);
+void send_bth_data();
 
 void setup() {
   // デバッグ用シリアル通信
@@ -80,21 +81,20 @@ void command_execute(String command) {
       Serial.println("Unknown Command");
   }
   //常に行う処理
-  BaroThermoHygrometer_t bth_data = bth.read();
-  char bmeSensorData[100] = "";
-  char dataLine[64];
-  int len = 0;
-  bmeSensorData[len] = 0x5C;
-  len++;
-  bmeSensorData[len] = 0x94;
-  len++;
-  memcpy(&bmeSensorData[len], &bth_data.temperature, sizeof(float));
-  len += sizeof(float);
-  memcpy(&bmeSensorData[len], &bth_data.pressure, sizeof(float));
-  len += sizeof(float);
-  memcpy(&bmeSensorData[len], &bth_data.humidity, sizeof(float));
-  len += sizeof(float);
-  bmeSensorData[len] = '\n';
-  len++;
-  Serial5.write(bmeSensorData, len);
+  send_bth_data();
+}
+
+void send_bth_data() {
+    BaroThermoHygrometer_t bth_data = bth.read();
+    char bmeSensorData[100] = "";
+    int len = 0;
+    bmeSensorData[len] = 0x5C;
+    len++;
+    bmeSensorData[len] = 0x94;
+    len++;
+    memcpy(&bmeSensorData[len], &bth_data, sizeof(bth_data));
+    len += sizeof(bth_data);
+    bmeSensorData[len] = '\n';
+    len++;
+    Serial5.write(bmeSensorData, len);
 }

@@ -20,6 +20,9 @@ unsigned long lastCommandTime = 0;
 const unsigned long timeout = 500;
 uint8_t latestFrame[32];
 int latestLen = 0;
+float pressure;
+float temperature;
+float humidity;
 
 void Wifi_setup()
 {
@@ -46,25 +49,37 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
 {
   static uint8_t recvBuffer[32];
   static int index = 0;
+  static bool inFrame = false;
 
+  Serial.begin(115200);
   while (Serial1.available()) {
-    uint8_t b = Serial1.read();
-
-    if (index < sizeof(recvBuffer)) {
-      recvBuffer[index] = b;
-      index++;
-    }
-
-    if (b == '\n' && index >= 15) {
+    uint8_t byte = Serial1.read();
+    if (!inFrame) {
+      // ヘッダ検出中
+      recvBuffer[0] = recvBuffer[1];
+      recvBuffer[1] = byte;
       if (recvBuffer[0] == 0x5C && recvBuffer[1] == 0x94) {
-        memcpy(latestFrame, recvBuffer, index);
-        latestLen = index;
+        inFrame = true;
+        index = 2;
       }
-      index = 0;
-    }
-
-    if (index >= sizeof(recvBuffer)) {
-      index = 0;
+    } else {
+      // フレーム収集中
+      if (index < sizeof(recvBuffer)) {
+        recvBuffer[index] = byte;
+        index++;
+        if (byte == '\n' && index >= 15) {
+          // 完全なフレーム受信
+          memcpy(latestFrame, recvBuffer, index);
+          latestLen = index;
+          inFrame = false;
+          index = 0;
+          break;  // 一度に1フレームのみ処理
+        }
+      } else {
+        // 長すぎる場合は破棄して再同期
+        inFrame = false;
+        index = 0;
+      }
     }
   }
   // UARTでTeensyに送信
@@ -86,10 +101,21 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
       latestFrame[0] == 0x5C &&
       latestFrame[1] == 0x94 &&
       latestFrame[14] == '\n') {
-
-    Udp.beginPacket(remoteIP, remotePort);
-    Udp.write(&latestFrame[2], 12);
-    Udp.endPacket();
+        int mem = 2;
+        memcpy(&pressure, &latestFrame[mem], sizeof(float));
+        mem = mem + sizeof(float);
+        memcpy(&temperature, &latestFrame[mem], sizeof(float));
+        mem = mem + sizeof(float);
+        memcpy(&humidity, &latestFrame[mem], sizeof(float));
+        Serial.println("pressure");
+        Serial.println(pressure);
+        Serial.println("temperture");
+        Serial.println(temperature);
+        Serial.println("humidity");
+        Serial.println(humidity);
+        Udp.beginPacket(remoteIP, remotePort);
+        Udp.write(&latestFrame[2], 12);
+        Udp.endPacket();
     }
   } else if (strcmp(command, "B") == 0) {
       Serial1.println("B");
