@@ -22,14 +22,19 @@ def send_command(command):
         try:
             data, addr = sock.recvfrom(1024)  # 最大1024バイトのデータを受信
 
-            if len(data) == 12:
-                temp, press, humi = struct.unpack('<fff', data)
-                print("Received from ESP32-S3:")
-                print(f"pressure: {temp:.2f}")
-                print(f"temperature:    {press:.2f}")
-                print(f"humidity:    {humi:.2f}")
+            if len(data) == 15:
+                # ヘッダ確認
+                if data[0] == 0x5C and data[1] == 0x94 and data[14] == ord('\n'):
+                    pressure, temperature, humidity = struct.unpack('<fff', data[2:14])
+
+                    print("Received from ESP32-S3:")
+                    print(f"pressure: {pressure:.2f}")
+                    print(f"temperature: {temperature:.2f}")
+                    print(f"humidity: {humidity:.2f}")
+                else:
+                    print("Invalid header or footer")
             else:
-                print(f"Invalid data length: {len(data)} bytes")
+                print("Invalid data length")
 
         except socket.timeout:
             print("No response from ESP32-S3.")

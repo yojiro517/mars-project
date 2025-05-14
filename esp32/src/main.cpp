@@ -114,7 +114,7 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
         Serial.println("humidity");
         Serial.println(humidity);
         Udp.beginPacket(remoteIP, remotePort);
-        Udp.write(&latestFrame[2], 12);
+        Udp.write(&latestFrame[0], 15);
         Udp.endPacket();
     }
   } else if (strcmp(command, "B") == 0) {
