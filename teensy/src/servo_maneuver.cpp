@@ -8,6 +8,8 @@ ServoManeuver::ServoManeuver(int left_servo_pin, int right_servo_pin)
 void ServoManeuver::init() {
     left_servo_.init();
     right_servo_.init();
+    delay(10);
+    stop();
 }
 
 void ServoManeuver::moveForward() {
