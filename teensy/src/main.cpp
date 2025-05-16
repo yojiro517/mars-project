@@ -7,10 +7,18 @@
 #define LEFT_SERVO_PIN  (2)   // 左サーボモーターのピン番号
 #define RIGHT_SERVO_PIN (3)   // 右サーボモーターのピン番号
 
+// #define DEBUG_MODE
+
 BaroThermoHygrometer bth;
 Led green_led{GREEN_LED_PIN};
 Led red_led{RED_LED_PIN};
 ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
+
+#ifdef DEBUG_MODE
+#define SerialComm Serial
+#else
+#define SerialComm Serial5
+#endif
 
 void command_execute(String command);
 void send_bth_data();
@@ -22,7 +30,7 @@ void setup() {
   Serial.println("Teensy UART Receiver Started");
   Wire.begin();
 
-  //UART通信用開始
+  // ESP32とのUART通信用開始
   Serial5.begin(115200);
 
   // LEDの初期化
@@ -38,8 +46,8 @@ void setup() {
 
 void loop() {
   // UARTでデータを受信
-  if (Serial5.available() > 0) {
-    String command = Serial5.readStringUntil('\n');
+  if (SerialComm.available() > 0) {
+    String command = SerialComm.readStringUntil('\n');
     command.trim();
 
     // 受信データを表示（デバッグ用）
@@ -84,15 +92,15 @@ void command_execute(String command) {
 
 void send_bth_data() {
     BaroThermoHygrometer_t bth_data = bth.read();
-    char bmeSensorData[100] = "";
+    char bth_data[20] = "";
     int len = 0;
-    bmeSensorData[len] = 0x5C;
+    bth_data[len] = 0x5C;
     len++;
-    bmeSensorData[len] = 0x94;
+    bth_data[len] = 0x94;
     len++;
-    memcpy(&bmeSensorData[len], &bth_data, sizeof(bth_data));
+    memcpy(&bth_data[len], &bth_data, sizeof(bth_data));
     len += sizeof(bth_data);
-    bmeSensorData[len] = '\n';
+    bth_data[len] = '\n';
     len++;
-    Serial5.write(bmeSensorData, len);
+    Serial5.write(bth_data, len);
 }

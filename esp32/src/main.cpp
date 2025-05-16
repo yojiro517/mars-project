@@ -2,6 +2,8 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
+// #define DEBUG_MODE
+
 #define ESP32_PORT 55555 // ESP32が受信するポート
 
 // WiFi関連
@@ -11,6 +13,12 @@ WiFiUDP Udp;
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
+
+#ifdef DEBUG_MODE
+#define SerialComm Serial
+#else
+#define SerialComm Serial1
+#endif
 
 // UARTピン設定
 #define UART_TX 1 // ESP32-S3のTXピン
@@ -24,36 +32,76 @@ float pressure;
 float temperature;
 float humidity;
 
-void Wifi_setup()
+void wifi_setup();
+void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
+void send_bth_data(uint8_t* packet);
+
+void setup()
+{
+  Serial.begin(115200); // デバッグ用シリアル通信
+  Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
+  delay(1000);
+  wifi_setup(); // Wi-Fi設定
+  Serial1.println("Ready to receive continuous commands via UDP.");
+}
+
+void loop()
+{
+  // UDPデータ受信処理
+  int packetSize = Udp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
+  if (packetSize > 0) {
+    char packetBuffer[255];
+    IPAddress remoteIP = Udp.remoteIP();
+    uint16_t remotePort = Udp.remotePort();
+    int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
+    if (len > 0) {
+      packetBuffer[len] = '\0';
+      lastCommand = packetBuffer;
+      lastCommandTime = millis();
+
+      // コマンドを処理
+      process_command(packetBuffer, remoteIP, remotePort);
+    }
+  }
+  // コマンド維持タイムアウト処理
+  if (millis() - lastCommandTime > timeout) {
+    lastCommand = "B";
+    process_command("B", IPAddress(), 0);
+    lastCommandTime = millis();
+  }
+  delay(1);
+}
+
+void wifi_setup()
 {
   // Wi-Fiアクセスポイントの開始
   if (!WiFi.softAP(ssid, password)) {
-    Serial1.println("Failed to start Wi-Fi Access Point");
+    Serial.println("Failed to start Wi-Fi Access Point");
     return;
   }
 
   // 固定IP設定
   if (!WiFi.softAPConfig(local_ip, gateway, subnet)) {
-    Serial1.println("Failed to configure static IP");
+    Serial.println("Failed to configure static IP");
     return;
   }
 
   // UDP通信の開始
   Udp.begin(ESP32_PORT);
 
-  Serial1.println("WiFi setup is complete");
-  Serial1.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
+  Serial.println("WiFi setup is complete");
+  Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
 }
 
-void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort)
+void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort)
 {
   static uint8_t recvBuffer[32];
   static int index = 0;
   static bool inFrame = false;
 
   Serial.begin(115200);
-  while (Serial1.available()) {
-    uint8_t byte = Serial1.read();
+  while (SerialComm.available()) {
+    uint8_t byte = SerialComm.read();
     if (!inFrame) {
       // ヘッダ検出中
       recvBuffer[0] = recvBuffer[1];
@@ -100,18 +148,7 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
       latestFrame[0] == 0x5C &&
       latestFrame[1] == 0x94 &&
       latestFrame[14] == '\n') {
-        int mem = 2;
-        memcpy(&pressure, &latestFrame[mem], sizeof(float));
-        mem = mem + sizeof(float);
-        memcpy(&temperature, &latestFrame[mem], sizeof(float));
-        mem = mem + sizeof(float);
-        memcpy(&humidity, &latestFrame[mem], sizeof(float));
-        Serial.println("pressure");
-        Serial.println(pressure);
-        Serial.println("temperture");
-        Serial.println(temperature);
-        Serial.println("humidity");
-        Serial.println(humidity);
+        send_bth_data(latestFrame);
         Udp.beginPacket(remoteIP, remotePort);
         Udp.write(&latestFrame[0], 15);
         Udp.endPacket();
@@ -123,38 +160,18 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
   }
 }
 
-void setup()
+void send_bth_data(uint8_t* packet)
 {
-  Serial.begin(115200); // デバッグ用シリアル通信
-  Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
-  delay(1000);
-  Wifi_setup(); // Wi-Fi設定
-  Serial1.println("Ready to receive continuous commands via UDP.");
-}
-
-void loop()
-{
-  // UDPデータ受信処理
-  int packetSize = Udp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
-  if (packetSize > 0) {
-    char packetBuffer[255];
-    IPAddress remoteIP = Udp.remoteIP();
-    uint16_t remotePort = Udp.remotePort();
-    int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
-    if (len > 0) {
-      packetBuffer[len] = '\0';
-      lastCommand = packetBuffer;
-      lastCommandTime = millis();
-
-      // コマンドを処理
-      processCommand(packetBuffer, remoteIP, remotePort);
-    }
-  }
-  // コマンド維持タイムアウト処理
-  if (millis() - lastCommandTime > timeout) {
-    lastCommand = "B";
-    processCommand("B", IPAddress(), 0);
-    lastCommandTime = millis();
-  }
-  delay(1);
+  int mem = 2;
+  memcpy(&pressure, &packet[mem], sizeof(float));
+  mem = mem + sizeof(float);
+  memcpy(&temperature, &packet[mem], sizeof(float));
+  mem = mem + sizeof(float);
+  memcpy(&humidity, &packet[mem], sizeof(float));
+  SerialComm.println("pressure");
+  SerialComm.println(pressure);
+  SerialComm.println("temperture");
+  SerialComm.println(temperature);
+  SerialComm.println("humidity");
+  SerialComm.println(humidity);
 }
