@@ -72,8 +72,6 @@ void command_execute(String command) {
   } else if (command == "R") {
       Serial.println("Action: Blink Red LED");
       red_led.blink(1000);
-  } else if (command == "T") {
-      Serial.println("Getting data from BME280");
   } else if (command == "B") {
       Serial.println("Action: Stopping");
       servo_maneuver.stop();

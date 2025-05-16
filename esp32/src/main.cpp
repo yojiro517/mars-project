@@ -96,7 +96,6 @@ void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort
   } else if (strcmp(command, "G") == 0) {
     Serial1.println("G");
   } else if (strcmp(command, "T") == 0) {
-    Serial1.println("T");
     if (latestLen == 15 &&
       latestFrame[0] == 0x5C &&
       latestFrame[1] == 0x94 &&
