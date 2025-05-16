@@ -18,7 +18,7 @@ private:
     int stop_speed_               = 0;
     int left_forward_speed_       = 15;
     int left_forward_speed_slow_  = 10;
-    int left_backward_speed_      = 10;
+    int left_backward_speed_      = -10;
     int right_forward_speed_      = -10;
     int right_forward_speed_slow_ = -5;
     int right_backward_speed_     = 10;
