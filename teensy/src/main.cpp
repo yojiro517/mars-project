@@ -4,8 +4,8 @@
 // ピン番号の定義
 #define GREEN_LED_PIN (22)    // 緑LEDのピン番号
 #define RED_LED_PIN   (23)    // 赤LEDのピン番号
-#define LEFT_SERVO_PIN  (2)   // 左サーボモーターのピン番号
-#define RIGHT_SERVO_PIN (3)   // 右サーボモーターのピン番号
+#define LEFT_SERVO_PIN  (3)   // 左サーボモーターのピン番号
+#define RIGHT_SERVO_PIN (2)   // 右サーボモーターのピン番号
 
 // #define DEBUG_MODE
 
