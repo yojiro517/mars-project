@@ -92,15 +92,15 @@ void command_execute(String command) {
 
 void send_bth_data() {
     BaroThermoHygrometer_t bth_data = bth.read();
-    char bmeSensorData[20] = "";
+    char bth_data[20] = "";
     int len = 0;
-    bmeSensorData[len] = 0x5C;
+    bth_data[len] = 0x5C;
     len++;
-    bmeSensorData[len] = 0x94;
+    bth_data[len] = 0x94;
     len++;
-    memcpy(&bmeSensorData[len], &bth_data, sizeof(bth_data));
+    memcpy(&bth_data[len], &bth_data, sizeof(bth_data));
     len += sizeof(bth_data);
-    bmeSensorData[len] = '\n';
+    bth_data[len] = '\n';
     len++;
-    Serial5.write(bmeSensorData, len);
+    Serial5.write(bth_data, len);
 }

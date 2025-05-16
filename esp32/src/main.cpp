@@ -32,8 +32,8 @@ float pressure;
 float temperature;
 float humidity;
 
-void Wifi_setup();
-void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort);
+void wifi_setup();
+void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
 
 void setup()
@@ -41,7 +41,7 @@ void setup()
   Serial.begin(115200); // デバッグ用シリアル通信
   Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
   delay(1000);
-  Wifi_setup(); // Wi-Fi設定
+  wifi_setup(); // Wi-Fi設定
   Serial1.println("Ready to receive continuous commands via UDP.");
 }
 
@@ -60,19 +60,19 @@ void loop()
       lastCommandTime = millis();
 
       // コマンドを処理
-      processCommand(packetBuffer, remoteIP, remotePort);
+      process_command(packetBuffer, remoteIP, remotePort);
     }
   }
   // コマンド維持タイムアウト処理
   if (millis() - lastCommandTime > timeout) {
     lastCommand = "B";
-    processCommand("B", IPAddress(), 0);
+    process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
   }
   delay(1);
 }
 
-void Wifi_setup()
+void wifi_setup()
 {
   // Wi-Fiアクセスポイントの開始
   if (!WiFi.softAP(ssid, password)) {
@@ -93,7 +93,7 @@ void Wifi_setup()
   Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
 }
 
-void processCommand(const char *command, IPAddress remoteIP, uint16_t remotePort)
+void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort)
 {
   static uint8_t recvBuffer[32];
   static int index = 0;
