@@ -1,1 +1,1 @@
-# fukui-cansat-2025
+# Micro Ai Robot for Students
