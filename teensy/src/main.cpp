@@ -13,6 +13,7 @@ Led red_led{RED_LED_PIN};
 ServoManeuver servo_maneuver(LEFT_SERVO_PIN, RIGHT_SERVO_PIN);
 
 void command_execute(String command);
+void send_bth_data();
 
 void setup() {
   // デバッグ用シリアル通信
@@ -71,20 +72,27 @@ void command_execute(String command) {
   } else if (command == "R") {
       Serial.println("Action: Blink Red LED");
       red_led.blink(1000);
-  } else if (command == "T") {
-      Serial.println("Getting data from BME280");
-      BaroThermoHygrometer_t bth_data = bth.read();
-      String bmeSensorData = "{";
-      bmeSensorData += "\"temperature\":" + String(bth_data.temperature, 2) + ",";
-      bmeSensorData += "\"pressure\":" + String(bth_data.pressure, 2) + ",";
-      bmeSensorData += "\"humidity\":" + String(bth_data.humidity, 2);
-      bmeSensorData += "}";
-      Serial5.println(bmeSensorData);
-      Serial.println(bmeSensorData);
   } else if (command == "B") {
       Serial.println("Action: Stopping");
       servo_maneuver.stop();
   } else {
       Serial.println("Unknown Command");
   }
+  //常に行う処理
+  send_bth_data();
+}
+
+void send_bth_data() {
+    BaroThermoHygrometer_t bth_data = bth.read();
+    char bmeSensorData[100] = "";
+    int len = 0;
+    bmeSensorData[len] = 0x5C;
+    len++;
+    bmeSensorData[len] = 0x94;
+    len++;
+    memcpy(&bmeSensorData[len], &bth_data, sizeof(bth_data));
+    len += sizeof(bth_data);
+    bmeSensorData[len] = '\n';
+    len++;
+    Serial5.write(bmeSensorData, len);
 }
