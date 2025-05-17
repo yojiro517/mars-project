@@ -37,8 +37,7 @@ float pressure;
 float temperature;
 float humidity;
 
-const int telem_size = 1440;
-uint8_t dummy_telem[telem_size] = {};
+uint8_t dummy_telem[IMAGE_SIZE] = {};
 
 uint8_t command_counter = 0;
 const uint32_t buffer_size = 1024;

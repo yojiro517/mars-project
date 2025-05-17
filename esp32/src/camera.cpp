@@ -54,13 +54,13 @@ void Camera::send_photo(const char *IP, int PORT, WifiUdp &wifiUdp)
 
   int i = 0;
   for (i=0; i<20; i++){
-    uint8_t p_r[1440] = {};
-    uint8_t p_g[1440] = {};
-    uint8_t p_b[1440] = {};
+    uint8_t p_r[IMAGE_SIZE] = {};
+    uint8_t p_g[IMAGE_SIZE] = {};
+    uint8_t p_b[IMAGE_SIZE] = {};
     int j = 0;
-    for (j=0; j<1440; j++){
-      uint16_t p0 = p[1440*4*i+4*j+0]*256 + p[1440*4*i+4*j+1];
-      uint16_t p1 = p[1440*4*i+4*j+2]*256 + p[1440*4*i+4*j+3];
+    for (j=0; j < IMAGE_SIZE; j++){
+      uint16_t p0 = p[IMAGE_SIZE*4*i+4*j+0]*256 + p[IMAGE_SIZE*4*i+4*j+1];
+      uint16_t p1 = p[IMAGE_SIZE*4*i+4*j+2]*256 + p[IMAGE_SIZE*4*i+4*j+3];
       p_r[j] = ((p0 & (uint16_t)0b1111000000000000)>>8) | ((p1 & (uint16_t)0b1111000000000000)>>12);
       p_g[j] = ((p0 & (uint16_t)0b0000011110000000)>>3) | ((p1 & (uint16_t)0b0000011110000000)>>7);
       p_b[j] = ((p0 & (uint16_t)0b0000000000011110)<<3) | ((p1 & (uint16_t)0b0000000000011110)>>1);

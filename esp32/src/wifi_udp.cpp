@@ -41,7 +41,7 @@ void WifiUdp::send(const char *ip, int port, const uint8_t *data, size_t packet_
   WifiUdp::beginPacket(ip, port);
   WifiUdp::write(packet_num);
   uint8_t sum=0;
-  for (i=0; i < TELEMETRY_SIZE; i++) {
+  for (i=0; i < IMAGE_SIZE; i++) {
       WifiUdp::write(data[i]);
       sum += data[i];
   }

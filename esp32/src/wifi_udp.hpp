@@ -5,7 +5,7 @@
 #include <Arduino.h>
 
 #define ESP32_PORT 55555 // ESP32が受信するポート
-#define TELEMETRY_SIZE (1440)
+#define IMAGE_SIZE (1440)
 
 class WifiUdp : public WiFiUDP
 {
