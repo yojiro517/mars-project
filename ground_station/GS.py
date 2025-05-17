@@ -77,25 +77,33 @@ def main():
     while True:
         packet_number, data, check_sum = receive_telemetry()
         try:
-            time.sleep(0.1)
             if keyboard.is_pressed('w'):
                 send_command("W")
+                time.sleep(0.1)
             elif keyboard.is_pressed('s'):
                 send_command("S")
+                time.sleep(0.1)
             elif keyboard.is_pressed('a'):
                 send_command("A")
+                time.sleep(0.1)
             elif keyboard.is_pressed('d'):
                 send_command("D")
+                time.sleep(0.1)
             elif keyboard.is_pressed('r'):
                 send_command("R")
+                time.sleep(0.1)
             elif keyboard.is_pressed('g'):
                 send_command("G")
+                time.sleep(0.1)
             elif keyboard.is_pressed('t'):
                 send_command("T")
+                time.sleep(0.1)
             elif keyboard.is_pressed('b'):
                 send_command("B")
+                time.sleep(0.1)
             elif keyboard.is_pressed('q'):
                 print("Exiting...")
+                time.sleep(0.1)
                 break
             else:
                 pass
