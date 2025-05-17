@@ -8,6 +8,7 @@
 #include "wifi_udp.hpp"
 
 // #define DEBUG_MODE
+// #define USE_CAMERA
 
 #define CONSOLE_IP "192.168.1.2"
 #define CONSOLE_PORT 50000
@@ -55,7 +56,10 @@ void setup()
   wifiUdp.init();
   // Serverの開始
   server.begin();
+
+  #ifdef USE_CAMERA
   camera.init();
+  #endif
 
   Serial1.println("Ready to receive continuous commands via UDP.");
 }
@@ -83,8 +87,10 @@ void loop()
     lastCommand = "B";
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
+#ifdef USE_CAMERA
     camera.send_photo(CONSOLE_IP, CONSOLE_PORT, wifiUdp);
     wifiUdp.send(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
+#endif
   }
   delay(1);
 }
