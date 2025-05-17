@@ -1,20 +1,13 @@
 #include <Arduino.h>
 
 #include <WebServer.h>
-#include <WiFi.h>
-#include <WiFiUdp.h>
 
 #include <Wire.h>
-// #include "SparkFunBME280.h" 
 
-// #include <ESP32Servo.h>
-
-#include "esp_camera.h"
 #include "camera.hpp"
+#include "wifi_udp.hpp"
 
 // #define DEBUG_MODE
-
-#define ESP32_PORT 55555 // ESP32が受信するポート
 
 #define CONSOLE_IP "192.168.1.2"
 #define CONSOLE_PORT 50000
@@ -23,9 +16,7 @@
 const char *ssid = "ESP32S3Sense";
 const char *password = "Password";
 WiFiUDP Udp;
-IPAddress local_ip(192, 168, 1, 1);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
+WifiUdp wifiUdp(ssid, password);
 WebServer server(80);
 Camera camera;
 
@@ -50,32 +41,16 @@ float humidity;
 bool camera_enable = true;
 
 const int telem_size = 1440;
-uint8_t telemetry[telem_size] = {};
 uint8_t dummy_telem[telem_size] = {};
 
 uint8_t command_counter = 0;
 const uint32_t buffer_size = 1024;
 char command[buffer_size] = {};
 
-void wifi_setup();
+
 void send_photo(const char *IP, int PORT);
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
-
-void udp_tx(const char *IP, int PORT, uint8_t *Telem, int Packet_number)
-{
-  int i = 0;
-  Udp.beginPacket(IP, PORT);
-  Udp.write(Packet_number);
-  uint8_t sum=0;
-  for (i=0; i<telem_size; i++) {
-      Udp.write(Telem[i]);
-      sum += Telem[i];
-  }
-  Udp.write((uint8_t)sum);
-  Udp.endPacket();
-  delay(1);
-}
 
 void setup()
 {
@@ -84,7 +59,9 @@ void setup()
   delay(1000);
   camera_enable = true;
 
-  wifi_setup();
+  wifiUdp.init();
+  // Serverの開始
+  server.begin();
   camera.init();
 
   Serial1.println("Ready to receive continuous commands via UDP.");
@@ -114,37 +91,11 @@ void loop()
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
     send_photo(CONSOLE_IP, CONSOLE_PORT);
-    udp_tx(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
+    wifiUdp.send(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
   }
   delay(1);
 }
 
-void wifi_setup()
-{
-  // Wi-Fiアクセスポイントの開始
-  if (!WiFi.softAP(ssid, password)) {
-    Serial.println("Failed to start Wi-Fi Access Point");
-    return;
-  }
-
-  // 固定IP設定
-  if (!WiFi.softAPConfig(local_ip, gateway, subnet)) {
-    Serial.println("Failed to configure static IP");
-    return;
-  }
-
-  // Serverの開始
-  server.begin();
-
-  // UDP通信の開始
-  Udp.begin(ESP32_PORT);
-  
-  delay(500);
-  WiFi.setTxPower(WIFI_POWER_15dBm);
-
-  Serial.println("WiFi setup is complete");
-  Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
-}
 void send_photo(const char *IP, int PORT)
 {
   camera_fb_t *fb = esp_camera_fb_get();
@@ -169,9 +120,9 @@ void send_photo(const char *IP, int PORT)
       p_g[j] = ((p0 & (uint16_t)0b0000011110000000)>>3) | ((p1 & (uint16_t)0b0000011110000000)>>7);
       p_b[j] = ((p0 & (uint16_t)0b0000000000011110)<<3) | ((p1 & (uint16_t)0b0000000000011110)>>1);
     }
-    udp_tx(IP, PORT, p_r, 3*i+1);
-    udp_tx(IP, PORT, p_g, 3*i+2);
-    udp_tx(IP, PORT, p_b, 3*i+3);
+    wifiUdp.send(IP, PORT, p_r, 3*i+1);
+    wifiUdp.send(IP, PORT, p_g, 3*i+2);
+    wifiUdp.send(IP, PORT, p_b, 3*i+3);
   }
 }
 
