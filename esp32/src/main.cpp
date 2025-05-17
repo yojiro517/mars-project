@@ -10,7 +10,7 @@
 // #include <ESP32Servo.h>
 
 #include "esp_camera.h"
-#include "camera_pins.h"
+#include "camera.hpp"
 
 // #define DEBUG_MODE
 
@@ -27,6 +27,7 @@ IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 WebServer server(80);
+Camera camera;
 
 #ifdef DEBUG_MODE
 #define SerialComm Serial
@@ -57,7 +58,6 @@ const uint32_t buffer_size = 1024;
 char command[buffer_size] = {};
 
 void wifi_setup();
-void camera_setup();
 void send_photo(const char *IP, int PORT);
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
@@ -85,7 +85,7 @@ void setup()
   camera_enable = true;
 
   wifi_setup();
-  camera_setup();
+  camera.init();
 
   Serial1.println("Ready to receive continuous commands via UDP.");
 }
@@ -145,41 +145,6 @@ void wifi_setup()
   Serial.println("WiFi setup is complete");
   Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
 }
-
-void camera_setup()
-{
-  // カメラ初期化
-  camera_config_t config;
-  config.ledc_channel = LEDC_CHANNEL_0;
-  config.ledc_timer = LEDC_TIMER_0;
-  config.pin_d0 = Y2_GPIO_NUM;
-  config.pin_d1 = Y3_GPIO_NUM;
-  config.pin_d2 = Y4_GPIO_NUM;
-  config.pin_d3 = Y5_GPIO_NUM;
-  config.pin_d4 = Y6_GPIO_NUM;
-  config.pin_d5 = Y7_GPIO_NUM;
-  config.pin_d6 = Y8_GPIO_NUM;
-  config.pin_d7 = Y9_GPIO_NUM;
-  config.pin_xclk = XCLK_GPIO_NUM;
-  config.pin_pclk = PCLK_GPIO_NUM;
-  config.pin_vsync = VSYNC_GPIO_NUM;
-  config.pin_href = HREF_GPIO_NUM;
-  config.pin_sccb_sda = SIOD_GPIO_NUM;
-  config.pin_sccb_scl = SIOC_GPIO_NUM;
-  config.pin_pwdn = PWDN_GPIO_NUM;
-  config.pin_reset = RESET_GPIO_NUM;
-  config.xclk_freq_hz = 20000000;
-  config.frame_size = FRAMESIZE_240X240;
-  config.pixel_format = PIXFORMAT_RGB565;
-  config.fb_location = CAMERA_FB_IN_PSRAM;
-  config.jpeg_quality = 10;
-  config.fb_count = 2;
-  config.grab_mode = CAMERA_GRAB_LATEST;
-  esp_camera_init(&config);
-
-  Serial.printf("Camera setup is complete\n");
-}
-
 void send_photo(const char *IP, int PORT)
 {
   camera_fb_t *fb = esp_camera_fb_get();

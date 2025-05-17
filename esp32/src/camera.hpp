@@ -1,5 +1,7 @@
 #pragma once
 
+#include "esp_camera.h"
+
 #define PWDN_GPIO_NUM     -1
 #define RESET_GPIO_NUM    -1
 #define XCLK_GPIO_NUM     10
@@ -17,3 +19,13 @@
 #define HREF_GPIO_NUM     47
 #define PCLK_GPIO_NUM     13
 #define LED_GPIO_NUM      21
+
+class Camera
+{
+  public:
+
+    Camera();
+    ~Camera() = default;
+
+    void init();
+};
