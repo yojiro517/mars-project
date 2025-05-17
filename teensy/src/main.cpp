@@ -102,5 +102,5 @@ void send_bth_data() {
     len += sizeof(bth_data);
     data[len] = '\n';
     len++;
-    Serial5.write(data, len);
+    SerialComm.write(data, len);
 }
