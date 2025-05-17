@@ -15,7 +15,6 @@
 // WiFi関連
 const char *ssid = "ESP32S3Sense";
 const char *password = "Password";
-WiFiUDP Udp;
 WifiUdp wifiUdp(ssid, password);
 WebServer server(80);
 Camera camera;
@@ -38,8 +37,6 @@ float pressure;
 float temperature;
 float humidity;
 
-bool camera_enable = true;
-
 const int telem_size = 1440;
 uint8_t dummy_telem[telem_size] = {};
 
@@ -47,8 +44,6 @@ uint8_t command_counter = 0;
 const uint32_t buffer_size = 1024;
 char command[buffer_size] = {};
 
-
-void send_photo(const char *IP, int PORT);
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
 
@@ -57,7 +52,6 @@ void setup()
   Serial.begin(115200); // デバッグ用シリアル通信
   Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
   delay(1000);
-  camera_enable = true;
 
   wifiUdp.init();
   // Serverの開始
@@ -70,12 +64,12 @@ void setup()
 void loop()
 {
   // UDPデータ受信処理
-  int packetSize = Udp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
+  int packetSize = wifiUdp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
   if (packetSize > 0) {
     char packetBuffer[255];
-    IPAddress remoteIP = Udp.remoteIP();
-    uint16_t remotePort = Udp.remotePort();
-    int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
+    IPAddress remoteIP = wifiUdp.remoteIP();
+    uint16_t remotePort = wifiUdp.remotePort();
+    int len = wifiUdp.read(packetBuffer, sizeof(packetBuffer) - 1);
     if (len > 0) {
       packetBuffer[len] = '\0';
       lastCommand = packetBuffer;
@@ -90,40 +84,10 @@ void loop()
     lastCommand = "B";
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
-    send_photo(CONSOLE_IP, CONSOLE_PORT);
+    camera.send_photo(CONSOLE_IP, CONSOLE_PORT, wifiUdp);
     wifiUdp.send(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
   }
   delay(1);
-}
-
-void send_photo(const char *IP, int PORT)
-{
-  camera_fb_t *fb = esp_camera_fb_get();
-  if (!fb) {
-    Serial.println("Failed to get camera frame buffer");
-    return;
-  }
-  esp_camera_fb_return(fb);
-
-  uint8_t *p = fb->buf;
-
-  int i = 0;
-  for (i=0; i<20; i++){
-    uint8_t p_r[1440] = {};
-    uint8_t p_g[1440] = {};
-    uint8_t p_b[1440] = {};
-    int j = 0;
-    for (j=0; j<1440; j++){
-      uint16_t p0 = p[1440*4*i+4*j+0]*256 + p[1440*4*i+4*j+1];
-      uint16_t p1 = p[1440*4*i+4*j+2]*256 + p[1440*4*i+4*j+3];
-      p_r[j] = ((p0 & (uint16_t)0b1111000000000000)>>8) | ((p1 & (uint16_t)0b1111000000000000)>>12);
-      p_g[j] = ((p0 & (uint16_t)0b0000011110000000)>>3) | ((p1 & (uint16_t)0b0000011110000000)>>7);
-      p_b[j] = ((p0 & (uint16_t)0b0000000000011110)<<3) | ((p1 & (uint16_t)0b0000000000011110)>>1);
-    }
-    wifiUdp.send(IP, PORT, p_r, 3*i+1);
-    wifiUdp.send(IP, PORT, p_g, 3*i+2);
-    wifiUdp.send(IP, PORT, p_b, 3*i+3);
-  }
 }
 
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort)
@@ -182,9 +146,7 @@ void process_command(const char *command, IPAddress remoteIP, uint16_t remotePor
       latestFrame[1] == 0x94 &&
       latestFrame[14] == '\n') {
         send_bth_data(latestFrame);
-        Udp.beginPacket(remoteIP, remotePort);
-        Udp.write(&latestFrame[0], 15);
-        Udp.endPacket();
+        wifiUdp.send_data(remoteIP, remotePort, &latestFrame[0], 15);
     }
   } else if (strcmp(command, "B") == 0) {
       Serial1.println("B");

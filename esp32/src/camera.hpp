@@ -1,6 +1,7 @@
 #pragma once
 
 #include "esp_camera.h"
+#include "wifi_udp.hpp"
 
 #define PWDN_GPIO_NUM     -1
 #define RESET_GPIO_NUM    -1
@@ -28,4 +29,6 @@ class Camera
     ~Camera() = default;
 
     void init();
+    void send_photo(const char *IP, int PORT, WifiUdp &wifiUdp);
 };
+

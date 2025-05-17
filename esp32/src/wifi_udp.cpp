@@ -49,3 +49,10 @@ void WifiUdp::send(const char *ip, int port, const uint8_t *data, size_t packet_
   WifiUdp::endPacket();
   delay(1);
 }
+
+void WifiUdp::send_data(IPAddress ip, uint16_t port, const uint8_t *data, size_t len)
+{
+  WifiUdp::beginPacket(ip, port);
+  WifiUdp::write(data, len);
+  WifiUdp::endPacket();
+}

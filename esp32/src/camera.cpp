@@ -41,3 +41,33 @@ void Camera::init()
   Serial.printf("Camera setup is complete\n");
 }
 
+void Camera::send_photo(const char *IP, int PORT, WifiUdp &wifiUdp)
+{
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("Failed to get camera frame buffer");
+    return;
+  }
+  esp_camera_fb_return(fb);
+
+  uint8_t *p = fb->buf;
+
+  int i = 0;
+  for (i=0; i<20; i++){
+    uint8_t p_r[1440] = {};
+    uint8_t p_g[1440] = {};
+    uint8_t p_b[1440] = {};
+    int j = 0;
+    for (j=0; j<1440; j++){
+      uint16_t p0 = p[1440*4*i+4*j+0]*256 + p[1440*4*i+4*j+1];
+      uint16_t p1 = p[1440*4*i+4*j+2]*256 + p[1440*4*i+4*j+3];
+      p_r[j] = ((p0 & (uint16_t)0b1111000000000000)>>8) | ((p1 & (uint16_t)0b1111000000000000)>>12);
+      p_g[j] = ((p0 & (uint16_t)0b0000011110000000)>>3) | ((p1 & (uint16_t)0b0000011110000000)>>7);
+      p_b[j] = ((p0 & (uint16_t)0b0000000000011110)<<3) | ((p1 & (uint16_t)0b0000000000011110)>>1);
+    }
+    wifiUdp.send(IP, PORT, p_r, 3*i+1);
+    wifiUdp.send(IP, PORT, p_g, 3*i+2);
+    wifiUdp.send(IP, PORT, p_b, 3*i+3);
+  }
+}
+

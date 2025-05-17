@@ -15,6 +15,7 @@ class WifiUdp : public WiFiUDP
 
     void init();
     void send(const char *ip, int port, const uint8_t *data, size_t packet_num);
+    void send_data(IPAddress ip, uint16_t port, const uint8_t *data, size_t len);
 
   private:
     const char* ssid_;
