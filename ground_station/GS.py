@@ -23,30 +23,13 @@ def send_command(command):
     # コマンドを送信
     sock.sendto(command.encode(), (ESP32_UDP_IP, ESP32_UDP_PORT))
     print(f"Sent: {command}")
-
-    # TコマンドとEコマンドの場合、センサーのデータを受信
-    if command == "T":
-        try:
-            data, addr = sock.recvfrom(1024)  # 最大1024バイトのデータを受信
-
-            if len(data) == 15:
-                # ヘッダ確認
-                if data[0] == 0x5C and data[1] == 0x94 and data[14] == ord('\n'):
-                    pressure, temperature, humidity = struct.unpack('<fff', data[2:14])
-
-                    print("Received from ESP32-S3:")
-                    print(f"pressure: {pressure:.2f}")
-                    print(f"temperature: {temperature:.2f}")
-                    print(f"humidity: {humidity:.2f}")
-                else:
-                    print("Invalid header or footer")
-            else:
-                print("Invalid data length")
-
-        except socket.timeout:
-            print("No response from ESP32-S3.")
+    
 def receive_telemetry():
-    data, addr = sock.recvfrom(2048)  # 最大1024バイトのデータを受信
+    try:
+        data, addr = sock.recvfrom(2048)  # 最大1024バイトのデータを受信
+    except socket.timeout:
+        # print("No data received")
+        return None, None, None
     packet = np.frombuffer(data, dtype=np.uint8)
     packet_number = packet[0]
     check_sum = packet[-1]
@@ -111,7 +94,9 @@ def main():
             print("Exiting...")
             break
         sys.stdout.flush()
-        if packet_number == 0x5C:
+        if packet_number is None:
+            continue
+        elif packet_number == 0x5C:
             telemetry_reader(data)
         elif packet_number == 0xFF:
             camera_show(cv2.rotate(image,cv2.ROTATE_180) if reverese_flag else image)
