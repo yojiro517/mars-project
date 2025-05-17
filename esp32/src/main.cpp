@@ -1,10 +1,23 @@
 #include <Arduino.h>
+
+#include <WebServer.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+
+#include <Wire.h>
+// #include "SparkFunBME280.h" 
+
+// #include <ESP32Servo.h>
+
+#include "esp_camera.h"
+#include "camera_pins.h"
 
 // #define DEBUG_MODE
 
 #define ESP32_PORT 55555 // ESP32が受信するポート
+
+#define CONSOLE_IP "192.168.1.2"
+#define CONSOLE_PORT 50000
 
 // WiFi関連
 const char *ssid = "ESP32S3Sense";
@@ -13,6 +26,7 @@ WiFiUDP Udp;
 IPAddress local_ip(192, 168, 1, 1);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
+WebServer server(80);
 
 #ifdef DEBUG_MODE
 #define SerialComm Serial
@@ -25,23 +39,54 @@ IPAddress subnet(255, 255, 255, 0);
 #define UART_RX 2 // ESP32-S3のRXピン
 String lastCommand = "";
 unsigned long lastCommandTime = 0;
-const unsigned long timeout = 500;
+const unsigned long timeout = 200;
 uint8_t latestFrame[32];
 int latestLen = 0;
 float pressure;
 float temperature;
 float humidity;
 
+bool camera_enable = true;
+
+const int telem_size = 1440;
+uint8_t telemetry[telem_size] = {};
+uint8_t dummy_telem[telem_size] = {};
+
+uint8_t command_counter = 0;
+const uint32_t buffer_size = 1024;
+char command[buffer_size] = {};
+
 void wifi_setup();
+void camera_setup();
+void send_photo(const char *IP, int PORT);
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
+
+void udp_tx(const char *IP, int PORT, uint8_t *Telem, int Packet_number)
+{
+  int i = 0;
+  Udp.beginPacket(IP, PORT);
+  Udp.write(Packet_number);
+  uint8_t sum=0;
+  for (i=0; i<telem_size; i++) {
+      Udp.write(Telem[i]);
+      sum += Telem[i];
+  }
+  Udp.write((uint8_t)sum);
+  Udp.endPacket();
+  delay(1);
+}
 
 void setup()
 {
   Serial.begin(115200); // デバッグ用シリアル通信
   Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
   delay(1000);
-  wifi_setup(); // Wi-Fi設定
+  camera_enable = true;
+
+  wifi_setup();
+  camera_setup();
+
   Serial1.println("Ready to receive continuous commands via UDP.");
 }
 
@@ -68,6 +113,8 @@ void loop()
     lastCommand = "B";
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
+    send_photo(CONSOLE_IP, CONSOLE_PORT);
+    udp_tx(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
   }
   delay(1);
 }
@@ -86,11 +133,81 @@ void wifi_setup()
     return;
   }
 
+  // Serverの開始
+  server.begin();
+
   // UDP通信の開始
   Udp.begin(ESP32_PORT);
+  
+  delay(500);
+  WiFi.setTxPower(WIFI_POWER_15dBm);
 
   Serial.println("WiFi setup is complete");
   Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
+}
+
+void camera_setup()
+{
+  // カメラ初期化
+  camera_config_t config;
+  config.ledc_channel = LEDC_CHANNEL_0;
+  config.ledc_timer = LEDC_TIMER_0;
+  config.pin_d0 = Y2_GPIO_NUM;
+  config.pin_d1 = Y3_GPIO_NUM;
+  config.pin_d2 = Y4_GPIO_NUM;
+  config.pin_d3 = Y5_GPIO_NUM;
+  config.pin_d4 = Y6_GPIO_NUM;
+  config.pin_d5 = Y7_GPIO_NUM;
+  config.pin_d6 = Y8_GPIO_NUM;
+  config.pin_d7 = Y9_GPIO_NUM;
+  config.pin_xclk = XCLK_GPIO_NUM;
+  config.pin_pclk = PCLK_GPIO_NUM;
+  config.pin_vsync = VSYNC_GPIO_NUM;
+  config.pin_href = HREF_GPIO_NUM;
+  config.pin_sccb_sda = SIOD_GPIO_NUM;
+  config.pin_sccb_scl = SIOC_GPIO_NUM;
+  config.pin_pwdn = PWDN_GPIO_NUM;
+  config.pin_reset = RESET_GPIO_NUM;
+  config.xclk_freq_hz = 20000000;
+  config.frame_size = FRAMESIZE_240X240;
+  config.pixel_format = PIXFORMAT_RGB565;
+  config.fb_location = CAMERA_FB_IN_PSRAM;
+  config.jpeg_quality = 10;
+  config.fb_count = 2;
+  config.grab_mode = CAMERA_GRAB_LATEST;
+  esp_camera_init(&config);
+
+  Serial.printf("Camera setup is complete\n");
+}
+
+void send_photo(const char *IP, int PORT)
+{
+  camera_fb_t *fb = esp_camera_fb_get();
+  if (!fb) {
+    Serial.println("Failed to get camera frame buffer");
+    return;
+  }
+  esp_camera_fb_return(fb);
+
+  uint8_t *p = fb->buf;
+
+  int i = 0;
+  for (i=0; i<20; i++){
+    uint8_t p_r[1440] = {};
+    uint8_t p_g[1440] = {};
+    uint8_t p_b[1440] = {};
+    int j = 0;
+    for (j=0; j<1440; j++){
+      uint16_t p0 = p[1440*4*i+4*j+0]*256 + p[1440*4*i+4*j+1];
+      uint16_t p1 = p[1440*4*i+4*j+2]*256 + p[1440*4*i+4*j+3];
+      p_r[j] = ((p0 & (uint16_t)0b1111000000000000)>>8) | ((p1 & (uint16_t)0b1111000000000000)>>12);
+      p_g[j] = ((p0 & (uint16_t)0b0000011110000000)>>3) | ((p1 & (uint16_t)0b0000011110000000)>>7);
+      p_b[j] = ((p0 & (uint16_t)0b0000000000011110)<<3) | ((p1 & (uint16_t)0b0000000000011110)>>1);
+    }
+    udp_tx(IP, PORT, p_r, 3*i+1);
+    udp_tx(IP, PORT, p_g, 3*i+2);
+    udp_tx(IP, PORT, p_b, 3*i+3);
+  }
 }
 
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort)
