@@ -1,18 +1,24 @@
 #include <Arduino.h>
-#include <WiFi.h>
-#include <WiFiUdp.h>
+
+#include <WebServer.h>
+
+#include <Wire.h>
+
+#include "camera.hpp"
+#include "wifi_udp.hpp"
 
 // #define DEBUG_MODE
+// #define USE_CAMERA
 
-#define ESP32_PORT 55555 // ESP32が受信するポート
+#define CONSOLE_IP "192.168.1.2"
+#define CONSOLE_PORT 50000
 
 // WiFi関連
 const char *ssid = "ESP32S3Sense";
 const char *password = "Password";
-WiFiUDP Udp;
-IPAddress local_ip(192, 168, 1, 1);
-IPAddress gateway(192, 168, 1, 1);
-IPAddress subnet(255, 255, 255, 0);
+WifiUdp wifiUdp(ssid, password);
+WebServer server(80);
+Camera camera;
 
 #ifdef DEBUG_MODE
 #define SerialComm Serial
@@ -25,14 +31,19 @@ IPAddress subnet(255, 255, 255, 0);
 #define UART_RX 2 // ESP32-S3のRXピン
 String lastCommand = "";
 unsigned long lastCommandTime = 0;
-const unsigned long timeout = 500;
+const unsigned long timeout = 200;
 uint8_t latestFrame[32];
 int latestLen = 0;
 float pressure;
 float temperature;
 float humidity;
 
-void wifi_setup();
+uint8_t dummy_telem[IMAGE_SIZE] = {};
+
+uint8_t command_counter = 0;
+const uint32_t buffer_size = 1024;
+char command[buffer_size] = {};
+
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort);
 void send_bth_data(uint8_t* packet);
 
@@ -41,19 +52,27 @@ void setup()
   Serial.begin(115200); // デバッグ用シリアル通信
   Serial1.begin(115200, SERIAL_8N1, UART_RX, UART_TX); // UART通信開始
   delay(1000);
-  wifi_setup(); // Wi-Fi設定
+
+  wifiUdp.init();
+  // Serverの開始
+  server.begin();
+
+  #ifdef USE_CAMERA
+  camera.init();
+  #endif
+
   Serial1.println("Ready to receive continuous commands via UDP.");
 }
 
 void loop()
 {
   // UDPデータ受信処理
-  int packetSize = Udp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
+  int packetSize = wifiUdp.parsePacket(); // 受信パケットサイズを取得（受信がなかったら０）
   if (packetSize > 0) {
     char packetBuffer[255];
-    IPAddress remoteIP = Udp.remoteIP();
-    uint16_t remotePort = Udp.remotePort();
-    int len = Udp.read(packetBuffer, sizeof(packetBuffer) - 1);
+    IPAddress remoteIP = wifiUdp.remoteIP();
+    uint16_t remotePort = wifiUdp.remotePort();
+    int len = wifiUdp.read(packetBuffer, sizeof(packetBuffer) - 1);
     if (len > 0) {
       packetBuffer[len] = '\0';
       lastCommand = packetBuffer;
@@ -68,29 +87,12 @@ void loop()
     lastCommand = "B";
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
+#ifdef USE_CAMERA
+    camera.send_photo(CONSOLE_IP, CONSOLE_PORT, wifiUdp);
+    wifiUdp.send(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
+#endif
   }
   delay(1);
-}
-
-void wifi_setup()
-{
-  // Wi-Fiアクセスポイントの開始
-  if (!WiFi.softAP(ssid, password)) {
-    Serial.println("Failed to start Wi-Fi Access Point");
-    return;
-  }
-
-  // 固定IP設定
-  if (!WiFi.softAPConfig(local_ip, gateway, subnet)) {
-    Serial.println("Failed to configure static IP");
-    return;
-  }
-
-  // UDP通信の開始
-  Udp.begin(ESP32_PORT);
-
-  Serial.println("WiFi setup is complete");
-  Serial.printf("AP IP address: %s\n", WiFi.softAPIP().toString().c_str());
 }
 
 void process_command(const char *command, IPAddress remoteIP, uint16_t remotePort)
@@ -149,9 +151,7 @@ void process_command(const char *command, IPAddress remoteIP, uint16_t remotePor
       latestFrame[1] == 0x94 &&
       latestFrame[14] == '\n') {
         send_bth_data(latestFrame);
-        Udp.beginPacket(remoteIP, remotePort);
-        Udp.write(&latestFrame[0], 15);
-        Udp.endPacket();
+        wifiUdp.send_data(remoteIP, remotePort, &latestFrame[0], 15);
     }
   } else if (strcmp(command, "B") == 0) {
       Serial1.println("B");
