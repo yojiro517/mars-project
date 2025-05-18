@@ -11,7 +11,7 @@ SHARED_UDP_PORT = 50000
 # ESP32-S3のIPとポート
 ESP32_UDP_IP = "192.168.1.1"
 ESP32_UDP_PORT = 55555
-reverese_flag = False
+reverese_flag = True
 
 # ソケットの設定
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -50,8 +50,7 @@ def image_decode(packet_number,data,image):
     image[index:index+12,:,rgb] = np.reshape(np.ravel(np.array([data//16, data%16]).T),(12,240))*16
     return image
 def camera_show(image_rgb):
-    img_flip_lr = cv2.rotate(image_rgb, cv2.ROTATE_180)
-    output_image = cv2.resize(img_flip_lr, (500, 500))
+    output_image = cv2.resize(image_rgb, (500, 500))
     cv2.imshow('ESP32S3_Sense', output_image)
     cv2.waitKey(1)
 
