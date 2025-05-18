@@ -8,7 +8,7 @@
 #include "wifi_udp.hpp"
 
 // #define DEBUG_MODE
-#define USE_CAMERA
+// #define USE_CAMERA
 
 #define CONSOLE_IP "192.168.1.2"
 #define CONSOLE_PORT 50000
