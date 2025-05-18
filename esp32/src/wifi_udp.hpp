@@ -7,6 +7,9 @@
 #define ESP32_PORT 55555 // ESP32が受信するポート
 #define IMAGE_SIZE (1440)
 
+#define CONSOLE_IP "192.168.1.2"
+#define CONSOLE_PORT 50000
+
 class WifiUdp : public WiFiUDP
 {
   public:
