@@ -8,7 +8,7 @@
 #include "wifi_udp.hpp"
 
 // #define DEBUG_MODE
-// #define USE_CAMERA
+#define USE_CAMERA
 
 #define CONSOLE_IP "192.168.1.2"
 #define CONSOLE_PORT 50000
@@ -31,7 +31,9 @@ Camera camera;
 #define UART_RX 2 // ESP32-S3のRXピン
 String lastCommand = "";
 unsigned long lastCommandTime = 0;
-const unsigned long timeout = 200;
+unsigned long camera_interval_time = 0;
+const unsigned long timeout = 500;
+const unsigned long camera_interval = 200;
 uint8_t latestFrame[32];
 int latestLen = 0;
 float pressure;
@@ -87,10 +89,14 @@ void loop()
     lastCommand = "B";
     process_command("B", IPAddress(), 0);
     lastCommandTime = millis();
+  }
+
+  if (millis() - camera_interval_time > camera_interval) {
 #ifdef USE_CAMERA
     camera.send_photo(CONSOLE_IP, CONSOLE_PORT, wifiUdp);
     wifiUdp.send(CONSOLE_IP, CONSOLE_PORT, dummy_telem, 0xFF);
 #endif
+    camera_interval_time = millis();
   }
   delay(1);
 }
