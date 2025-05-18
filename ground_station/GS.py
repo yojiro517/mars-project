@@ -50,7 +50,9 @@ def image_decode(packet_number,data,image):
     image[index:index+12,:,rgb] = np.reshape(np.ravel(np.array([data//16, data%16]).T),(12,240))*16
     return image
 def camera_show(image_rgb):
-    cv2.imshow('ESP32S3_Sense',image_rgb)
+    img_flip_lr = cv2.rotate(image_rgb, cv2.ROTATE_180)
+    output_image = cv2.resize(img_flip_lr, (500, 500))
+    cv2.imshow('ESP32S3_Sense', output_image)
     cv2.waitKey(1)
 
 def main():
