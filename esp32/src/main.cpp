@@ -10,9 +10,6 @@
 // #define DEBUG_MODE
 // #define USE_CAMERA
 
-#define CONSOLE_IP "192.168.1.2"
-#define CONSOLE_PORT 50000
-
 // WiFi関連
 const char *ssid = "ESP32S3Sense";
 const char *password = "Password";
@@ -174,10 +171,10 @@ void send_bth_data(uint8_t* packet)
   memcpy(&temperature, &packet[mem], sizeof(float));
   mem = mem + sizeof(float);
   memcpy(&humidity, &packet[mem], sizeof(float));
-  SerialComm.println("pressure");
-  SerialComm.println(pressure);
-  SerialComm.println("temperture");
-  SerialComm.println(temperature);
-  SerialComm.println("humidity");
-  SerialComm.println(humidity);
+  Serial.println("pressure");
+  Serial.println(pressure);
+  Serial.println("temperture");
+  Serial.println(temperature);
+  Serial.println("humidity");
+  Serial.println(humidity);
 }
