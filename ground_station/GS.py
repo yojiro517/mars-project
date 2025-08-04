@@ -53,6 +53,35 @@ def camera_show(image_rgb):
     output_image = cv2.resize(image_rgb, (500, 500))
     cv2.imshow('ESP32S3_Sense', output_image)
     cv2.waitKey(1)
+def camera_rgb_show(image_rgb):
+    output_image = cv2.resize(image_rgb, (250, 250))
+    b, g, r = cv2.split(output_image)
+    zeros = np.zeros_like(b)
+    # 可視化用に各チャンネルを「色付き」画像へ
+    r_img = cv2.merge([zeros, zeros, r])     # R だけ残す
+    g_img = cv2.merge([zeros, g, zeros])     # G だけ残す
+    b_img = cv2.merge([b, zeros, zeros])     # B だけ残す
+
+    top    = np.hstack((output_image, r_img))    # 左上:Normal, 右上:R
+    bottom = np.hstack((g_img, b_img))           # 左下:G, 右下:B
+    collage = np.vstack((top, bottom))
+    cv2.imshow('Normal | R | G | B', collage)
+    cv2.waitKey(1)
+def camera_rgb_diff_show(image_rgb):
+    output_image = cv2.resize(image_rgb, (250, 250))
+    b, g, r = cv2.split(output_image)
+    zeros = np.zeros_like(b)
+    # 可視化用に各チャンネルを「色付き」画像へ
+    r16, g16, b16 = r.astype(np.int16), g.astype(np.int16), b.astype(np.int16)
+    redness  = np.clip(r16 - ((g16 + b16)//2), 0, 255).astype(np.uint8)
+    greenness= np.clip(g16 - ((r16 + b16)//2), 0, 255).astype(np.uint8)
+    blueness = np.clip(b16 - ((r16 + g16)//2), 0, 255).astype(np.uint8)
+
+    top    = np.hstack((output_image, redness))    # 左上:Normal, 右上:R
+    bottom = np.hstack((greenness, blueness))      # 左下:G, 右下:B
+    collage = np.vstack((top, bottom))
+    cv2.imshow('Normal | R | G | B', collage)
+    cv2.waitKey(1)
 
 def main():
     print("Control the ESP32-S3")
@@ -101,6 +130,8 @@ def main():
             telemetry_reader(data)
         elif packet_number == 0xFF:
             camera_show(cv2.rotate(image,cv2.ROTATE_180) if reverese_flag else image)
+            # camera_rgb_show(cv2.rotate(image,cv2.ROTATE_180) if reverese_flag else image)
+            # camera_rgb_diff_show(cv2.rotate(image,cv2.ROTATE_180) if reverese_flag else image)
         else:
             image_decode(packet_number,data,image)
 
