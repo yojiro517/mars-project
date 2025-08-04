@@ -86,6 +86,21 @@ def camera_rgb_diff_show(image_rgb):
     collage = np.vstack((top, bottom))
     cv2.imshow('Normal | R | G | B', collage)
     cv2.waitKey(1)
+def camera_lab_show(image_rgb):
+    output_image = cv2.resize(image_rgb, (250, 250))
+    lab_image = cv2.cvtColor(output_image, cv2.COLOR_BGR2Lab)
+    l_channel, a_channel, b_channel = cv2.split(lab_image)
+    zeros = np.zeros_like(l_channel)
+    # 可視化用に各チャンネルを「色付き」画像へ
+    l_img = cv2.merge([l_channel, zeros, zeros])     # L だけ残す
+    a_img = cv2.merge([zeros, a_channel, zeros])     # A
+    b_img = cv2.merge([zeros, zeros, b_channel])     # B だけ残す
+    top    = np.hstack((output_image, l_img))    # 左上:Normal, 右上:L
+    bottom = np.hstack((a_img, b_img))           # 左下:A, 右下:B
+    collage = np.vstack((top, bottom))
+
+    cv2.imshow('Normal | L | A | B', collage)
+    cv2.waitKey(1)
 
 def main():
     print("Control the ESP32-S3")
