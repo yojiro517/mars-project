@@ -77,8 +77,12 @@ def camera_rgb_diff_show(image_rgb):
     greenness= np.clip(g16 - ((r16 + b16)//2), 0, 255).astype(np.uint8)
     blueness = np.clip(b16 - ((r16 + g16)//2), 0, 255).astype(np.uint8)
 
-    top    = np.hstack((output_image, redness))    # 左上:Normal, 右上:R
-    bottom = np.hstack((greenness, blueness))      # 左下:G, 右下:B
+    r_img = cv2.merge([zeros, zeros, redness])     # R だけ残す
+    g_img = cv2.merge([zeros, greenness, zeros])   # G だけ残す
+    b_img = cv2.merge([blueness, zeros, zeros])    # B だけ残す
+
+    top    = np.hstack((output_image, r_img))    # 左上:Normal, 右上:R
+    bottom = np.hstack((g_img, b_img))           # 左下:G, 右下:B
     collage = np.vstack((top, bottom))
     cv2.imshow('Normal | R | G | B', collage)
     cv2.waitKey(1)
