@@ -31,18 +31,14 @@ lib_deps =
 
 ### ビルド・書き込み手順
 
-```bash
-cd teensy
+1. VS Code で `teensy/` フォルダを開く
+2. PlatformIO 拡張が `platformio.ini` を自動認識し、必要なツールチェーン・ライブラリ（cansat-school-arduino-lib）をインストールする
+3. 画面下部のステータスバーから操作する
+   - **Build（チェックマークアイコン）**: ファームウェアをビルド
+   - **Upload（矢印アイコン）**: ボードに書き込み
+   - **Serial Monitor（プラグアイコン）**: シリアルモニターを開く（115200bps）
 
-# ビルドのみ
-pio run
-
-# ビルド + 書き込み
-pio run --target upload
-
-# シリアルモニターを開く
-pio device monitor
-```
+> **補足**: CLI から操作する場合は `pio run` / `pio run --target upload` / `pio device monitor` でも可能です。
 
 ### コンパイルスイッチ
 

@@ -196,26 +196,29 @@ python ground_station/GS.py
 
 ## 開発環境セットアップ
 
-### 必要なもの
+### 必要なソフトウェア
 
-- [PlatformIO](https://platformio.org/) (ESP32・Teensy ファームウェアのビルド・書き込み)
-- Python 3.x (地上局ソフトウェア)
+- [VS Code](https://code.visualstudio.com/) + [PlatformIO IDE 拡張](https://marketplace.visualstudio.com/items?itemName=platformio.platformio-ide)（ESP32・Teensy ファームウェアのビルド・書き込み）
+- Python 3.x（地上局ソフトウェア）
+
+### 必要なハードウェア
+
 - XIAO ESP32-S3 Sense
 - Teensy 4.1
-- BME280センサー
-- サーボモーター x2
+- BME280センサー（I2C接続）
+- 連続回転サーボモーター x2
+- 緑LED / 赤LED
 
 ### ファームウェアのビルドと書き込み
 
-```bash
-# ESP32
-cd esp32
-pio run --target upload
+1. VS Code で `esp32/` または `teensy/` フォルダを開く
+2. PlatformIO 拡張が `platformio.ini` を自動認識し、必要な依存ライブラリをインストールする
+3. 画面下部のステータスバーから以下の操作を行う
+   - **Build（チェックマークアイコン）**: ファームウェアをビルド
+   - **Upload（矢印アイコン）**: ボードに書き込み
+   - **Serial Monitor（プラグアイコン）**: シリアルモニターを開く
 
-# Teensy
-cd teensy
-pio run --target upload
-```
+> **補足**: CLI から操作する場合は `pio run` / `pio run --target upload` / `pio device monitor` でも可能です。
 
 ### 地上局の実行
 
