@@ -106,6 +106,13 @@ void process_command(const char *command, IPAddress remoteIP, uint16_t remotePor
 
   Serial.begin(115200);
   while (SerialComm.available()) {
+    if (SerialComm.available() > 256) {
+      while (SerialComm.available()) {
+        SerialComm.read();
+      }
+      inFrame = false;
+      index = 0;
+    }
     uint8_t byte = SerialComm.read();
     if (!inFrame) {
       // ヘッダ検出中
